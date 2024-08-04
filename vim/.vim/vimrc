@@ -1,0 +1,208 @@
+" Set
+set number
+set relativenumber
+
+" show existing tab with 4 spaces width
+set tabstop=4
+" " when indenting with '>', use 4 spaces width
+set shiftwidth=4
+" " On pressing tab, insert 4 spaces
+set expandtab
+
+" You might have to force true color when using regular vim inside tmux as the
+" colorscheme can appear to be grayscale with "termguicolors" option enabled.
+if !has('gui_running') && &term =~ '^\%(screen\|tmux\)'
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+set termguicolors
+
+" Empty space visualize
+set listchars=tab:\ \ ┊,trail:●,extends:…,precedes:…,space:·
+
+" Turn off auto-insert of comments
+augroup auto_comment
+    au!
+    au FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+augroup END
+
+" you nearly always want this
+set ignorecase
+" case-sensitive if search contains an uppercase character
+set smartcase
+
+let mapleader = ","
+" Plugin
+call plug#begin()
+" The default plugin directory will be as follows:
+"   - Vim (Linux/macOS): '~/.vim/plugged'
+"   - Vim (Windows): '~/vimfiles/plugged'
+"   - Neovim (Linux/macOS/Windows): stdpath('data') . '/plugged'
+" You can specify a custom plugin directory by passing it as the argument
+"   - e.g. `call plug#begin('~/.vim/plugged')`
+"   - Avoid using standard Vim directory names like 'plugin'
+
+" Make sure you use single quotes
+Plug 'tpope/vim-sensible'
+" surround.vim: Delete/change/add parentheses/quotes/XML-tags/much more with ease
+Plug 'tpope/vim-surround'
+
+" repeat.vim: enable repeating supported plugin maps with "."
+Plug 'tpope/vim-repeat'
+
+" speeddating.vim: use CTRL-A/CTRL-X to increment dates, times, and more
+Plug 'tpope/vim-speeddating'
+
+" unimpaired.vim: Pairs of handy bracket mappings
+Plug 'tpope/vim-unimpaired'
+
+" commentary.vim: comment stuff out
+Plug 'tpope/vim-commentary'
+
+" fugitive.vim: A Git wrapper so awesome, it should be illegal
+Plug 'tpope/vim-fugitive'
+
+" fzf ❤️ vim
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" Vim plugin, insert or delete brackets, parens, quotes in pair
+Plug 'jiangmiao/auto-pairs'
+
+" lean & mean status/tabline for vim that's light as air
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'tomasiser/vim-code-dark'
+
+" Vim motions on speed!
+Plug 'easymotion/vim-easymotion'
+
+" Improved incremental searching for Vim
+Plug 'haya14busa/incsearch.vim'
+
+" integrate incremental searching and easy motion
+Plug 'haya14busa/incsearch-easymotion.vim'
+
+" fuzzy search
+Plug 'haya14busa/incsearch-fuzzy.vim'
+
+" highlight the character which can move directly to (by `f`,`F`,`t`,`T`)
+Plug 'deris/vim-shot-f'
+
+" % now matches tags <tr><td><script> etc
+Plug 'adelarsq/vim-matchit'
+
+" Perform all your vim insert mode completions with Tab
+Plug 'ervandew/supertab'
+
+" A tree explore plugin for vim.
+Plug 'preservim/nerdtree'
+
+" emmet for vim
+Plug 'mattn/emmet-vim'
+
+" Vim plugin for Todo.txt
+Plug 'freitass/todo.txt-vim'
+
+" Preview colours in source code while editing
+Plug 'ap/vim-css-color'
+
+" Initialize plugin system
+call plug#end()
+
+" airline theme
+colorscheme codedark
+let g:airline_theme='violet'
+let g:airline_powerline_fonts = 1
+
+" Emmet Settings
+let g:user_emmet_leader_key='<C-Z>'
+
+" incsearch.vim x fuzzy x vim-easymotion
+function! s:config_easyfuzzymotion(...) abort
+    return extend(copy({
+      \   'converters': [
+      \     incsearch#config#fuzzy#converter(),
+      \     incsearch#config#fuzzyspell#converter()
+      \    ],
+      \   'modules': [incsearch#config#easymotion#module()],
+      \   'keymap': {"\<CR>": '<Over>(easymotion)'},
+      \   'is_expr': 0,
+      \ }), get(a:, 1, {}))
+endfunction
+
+" ========================================
+" IncSearch map
+
+noremap <silent><expr> <Space>/ incsearch#go(<SID>config_easyfuzzymotion())
+noremap <silent><expr> <Space>? incsearch#go(<SID>config_easyfuzzymotion({'command': '?'}))
+noremap <silent><expr> <Space>g/ incsearch#go(<SID>config_easyfuzzymotion({'is_stay': 1}))
+
+" =======================================
+" Map Leader
+
+map <Leader>h <Plug>(easymotion-linebackward)
+
+map <Leader>j <Plug>(easymotion-j)
+
+map <Leader>k <Plug>(easymotion-k)
+
+map <Leader>l <Plug>(easymotion-lineforward)
+
+nnoremap <leader>n :NERDTreeFocus<CR>
+" clipboard paste
+map <Leader>p "*p
+" source $MYVIMRC reloads the saved $MYVIMR
+nmap <Leader>s :w<CR>:source $MYVIMRC<CR>
+" Shortcut to rapidly toggle `set list`
+nmap <leader>t :set list!<CR>
+" opens $MYVIMRC for editing, or use :tabedit $MYVIMRC
+nmap <Leader>v :e $MYVIMRC<CR>
+" <cr> should not only clear highlighted search, but flash the current
+" cursor location.
+:nnoremap <CR> :nohlsearch<CR>:set cul cuc<cr>:sleep 50m<cr>:set nocul nocuc<cr>/<BS>
+
+
+let g:EasyMotion_startofline = 0 " keep cursor column when JK motion"
+
+" :h g:incsearch#auto_nohlsearch
+set hlsearch
+let g:incsearch#auto_nohlsearch = 1
+
+"======================================== 
+" Map
+map n  <Plug>(incsearch-nohl-n)
+map N  <Plug>(incsearch-nohl-N)
+map *  <Plug>(incsearch-nohl-*)
+map #  <Plug>(incsearch-nohl-#)
+map g* <Plug>(incsearch-nohl-g*)
+map g# <Plug>(incsearch-nohl-g#)
+
+map / <Plug>(incsearch-easymotion-/)
+map ? <Plug>(incsearch-easymotion-?)
+map g/ <Plug>(incsearch-easymotion-stay)
+
+" ========================================
+" NERDTree map
+nnoremap <C-n> :NERDTree<CR>
+nnoremap <C-t> :NERDTreeToggle<CR>
+nnoremap <C-f> :NERDTreeFind<CR>
+
+
+" nmap ;s :source ~/.vim/learn-vim/scriptfile.vim<CR>
+
+" format current file
+map <F7> gg=G<C-o><C-o>
+
+" disable the arrow key to adjust hjkl
+map <up> <nop>
+map <down> <nop>
+map <left> <nop>
+map <right> <nop>
+
+" Tab to navigate windows
+map <Tab> <C-W>w
+" ========================================   
+" Abbreviation
+iabbrev <silent> CWD <C-R>=getcwd()<CR>
+
