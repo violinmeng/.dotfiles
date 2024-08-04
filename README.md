@@ -16,3 +16,6 @@
 
 ### other
 - [oh-my-zsh](https://ohmyz.sh/#install): `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`
+
+-keyboard repeating input when holding the key : `defaults write -g ApplePressAndHoldEnabled -bool false
+`
