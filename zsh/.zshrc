@@ -105,3 +105,6 @@ source $ZSH/oh-my-zsh.sh
 alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
+# load fzf configration
+[ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh

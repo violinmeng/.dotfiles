@@ -59,6 +59,28 @@ setup_color() {
   FMT_RESET=$(printf '\033[0m')
 }
 
+brew_install() {
+    command_exists brew || {
+        # install brew
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        command_exists brew || {
+            fmt_error "try to install brew but failed. please install brew manually and re-run this script."
+            exit 1
+        }
+    }
+}
+
+stow_install() {
+    command_exists stow || {
+        brew install stow
+        command_exists stow || {
+            fmt_error "try to install stow with brew, but failed."
+            exit 1
+        }
+    }
+}
+
 zsh_install() {
     command_exists git || {
         fmt_error "git is not installed"
@@ -119,11 +141,40 @@ zsh_plugin_install() {
     }
 }
 
+alacritty_install() {
+    command_exists alacritty || {
+        brew install --cask alacritty
+        command_exists alacritty || {
+            fmt_error "try to install alacritty with brew, but failed."
+            exit 1
+        }
+    }
+}
+
+setup_alacritty_config() {
+    stow alacritty || {
+        fmt_error "alacritty zsh failed"
+        exit 1
+    }
+}
+
 main() {
 
+    # install Macos brew package manager.
+    brew_install
+
+    # install stow with brew. we can not setup these configration without this tools.
+    stow_install
+    
+    # oh-my-zsh config and add custom config
     zsh_install
     setup_zsh_config
     zsh_plugin_install
+
+    # install alacritty
+    alacritty_install
+
+    setup_alacritty_config
 
 }
 
