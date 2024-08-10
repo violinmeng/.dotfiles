@@ -71,14 +71,37 @@ brew_install() {
     }
 }
 
-stow_install() {
-    command_exists stow || {
-        brew install stow
+brew_installer() {
+    local tool="$1"
+
+    if [[ -z "$tool"]]; then
+        command_exists "$tool" || {
+            brew install "$tool"
+            command_exists "$tool" || {
+                fmt_error "try to install $tool with brew, but failed."
+                exit 1
+            }
+        }
+    else
+        fmt_error "function brew_installer should have one parameter"
+    fi
+}
+
+stow_config() {
+    local config="$1"
+
+    if [[ -z "$config"]]; then
         command_exists stow || {
-            fmt_error "try to install stow with brew, but failed."
+            fmt_error "stow is not installed"
             exit 1
         }
-    }
+        stow "$config" || {
+            fmt_error "stow $config failed"
+            exit 1
+        }
+    else
+        fmt_error "function stow_config should have one parameter"
+    fi
 }
 
 zsh_install() {
@@ -116,19 +139,6 @@ zsh_install() {
     echo
 }
 
-setup_zsh_config() {
-    command_exists stow || {
-        fmt_error "stow is not installed"
-        exit 1
-    }
-
-    stow zsh || {
-        fmt_error "stow zsh failed"
-        exit 1
-    }
-}
-
-
 zsh_plugin_install() {
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting || {
         fmt_error "git clone of zsh-syntax-highting repo failed"
@@ -137,6 +147,13 @@ zsh_plugin_install() {
 
     git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions || {
         fmt_error "git clone of zsh-autosuggestions repo failed"
+        exit 1
+    }
+}
+
+z_install() {   
+    git clone https://github.com/rupa/z.git $HOME/.config/z || {
+        fmt_error "git clone of z repo failed"
         exit 1
     }
 }
@@ -151,31 +168,39 @@ alacritty_install() {
     }
 }
 
-setup_alacritty_config() {
-    stow alacritty || {
-        fmt_error "alacritty zsh failed"
-        exit 1
-    }
-}
-
 main() {
 
     # install Macos brew package manager.
     brew_install
 
     # install stow with brew. we can not setup these configration without this tools.
-    stow_install
+    brew_installer stow
     
     # oh-my-zsh config and add custom config
     zsh_install
-    setup_zsh_config
+    stow_config zsh
     zsh_plugin_install
 
     # install alacritty
     alacritty_install
 
-    setup_alacritty_config
+    stow_config alacritty
+
+    # fzf
+    brew_installer fzf
+    brew_installer fd
+    z_install
+    stow_config fzf
+
+    # ripgrep
+    brew_installer ripgrep
+
+}
+
+test() {
+    brew_installer stow
 
 }
 
 main "$@"
+# test "$@"

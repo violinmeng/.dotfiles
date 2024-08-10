@@ -107,4 +107,5 @@ alias sourcezsh="source ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # load fzf configration
+[ -f ~/.config/z/z.sh ] && source ~/.config/z/z.sh
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
