@@ -16,6 +16,10 @@ fmt_error() {
     printf '%sError: %s%s\n' "${FMT_BOLD}${FMT_RED}" "$*" "$FMT_RESET" >&2
 }
 
+fmt_info() {
+    printf '%sInfo: %s%s\n' "${FMT_GREEN}" "$*" "$FMT_RESET" >&2
+}
+
 setup_color() {
   # Only use colors if connected to a terminal
   if ! is_tty; then
@@ -69,28 +73,31 @@ brew_install() {
             exit 1
         }
     }
+
+    fmt_info "brew installed"
 }
 
 brew_installer() {
-    local tool="$1"
-
-    if [[ -z "$tool"]]; then
-        command_exists "$tool" || {
-            brew install "$tool"
-            command_exists "$tool" || {
-                fmt_error "try to install $tool with brew, but failed."
+    local package="$1"
+    local cmd="${2:-$1}"
+    if [[ -n "${cmd}" ]]; then
+        command_exists "$cmd" || {
+            brew install "$package"
+            command_exists "$cmd" || {
+                fmt_error "try to install $package with brew, but failed."
                 exit 1
             }
         }
+        fmt_info "$package installed"
     else
-        fmt_error "function brew_installer should have one parameter"
+        fmt_error "function brew_installer should have one parameter at least"
     fi
 }
 
 stow_config() {
     local config="$1"
 
-    if [[ -z "$config"]]; then
+    if [[ -n "$config" ]]; then
         command_exists stow || {
             fmt_error "stow is not installed"
             exit 1
@@ -99,6 +106,7 @@ stow_config() {
             fmt_error "stow $config failed"
             exit 1
         }
+        fmt_info "stow $config finished"
     else
         fmt_error "function stow_config should have one parameter"
     fi
@@ -110,7 +118,8 @@ zsh_install() {
         exit 1
     }
 
-    if [ -d "$ZSH" ]; then
+    if [[ -d "$ZSH" ]]; then
+        fmt_info "oh-my-zsh has installed"
         return
     fi
 
@@ -140,19 +149,34 @@ zsh_install() {
 }
 
 zsh_plugin_install() {
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting || {
-        fmt_error "git clone of zsh-syntax-highting repo failed"
-        exit 1
-    }
+    if [[ -d "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting" ]]; then
+        fmt_info "zsh-syntax-highlighting has installed"
+    else
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting || {
+            fmt_error "git clone of zsh-syntax-highting repo failed"
+            exit 1
+        }
+    fi
+    
 
-    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions || {
-        fmt_error "git clone of zsh-autosuggestions repo failed"
-        exit 1
-    }
+    if [[ -d "${ZSH_CUSTOM}/plugins/zsh-autosuggestions" ]]; then
+        fmt_info "zsh-autosuggestions has installed"
+    else
+        git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions || {
+            fmt_error "git clone of zsh-autosuggestions repo failed"
+            exit 1
+        }
+    fi
+    
 }
 
 z_install() {   
-    git clone https://github.com/rupa/z.git $HOME/.config/z || {
+    if [[ -d "${HOME}/.config/z" ]]; then
+        fmt_info "z has installed"
+        return
+    fi
+
+    git clone git@github.com:rupa/z.git ${HOME}/.config/z || {
         fmt_error "git clone of z repo failed"
         exit 1
     }
@@ -166,6 +190,7 @@ alacritty_install() {
             exit 1
         }
     }
+    fmt_info "alacritty has installed"
 }
 
 main() {
@@ -183,7 +208,6 @@ main() {
 
     # install alacritty
     alacritty_install
-
     stow_config alacritty
 
     # fzf
@@ -193,7 +217,7 @@ main() {
     stow_config fzf
 
     # ripgrep
-    brew_installer ripgrep
+    brew_installer ripgrep rg
 
 }
 
