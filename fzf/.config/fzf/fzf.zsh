@@ -129,7 +129,7 @@ fbra() {
   local branches branch
   branches=$(git branch --all | grep -v HEAD) &&
   branch=$(echo "$branches" |
-           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+          fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
   git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
 
@@ -138,7 +138,7 @@ fbr() {
   local branches branch
   branches=$(git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)") &&
   branch=$(echo "$branches" |
-           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+          fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
   git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
 
@@ -213,16 +213,16 @@ c() {
   cp -f "$google_history" /tmp/h
   sqlite3 -separator $sep /tmp/h \
     "select substr(title, 1, $cols), url
-     from urls order by last_visit_time desc" |
+    from urls order by last_visit_time desc" |
   awk -F $sep '{printf "%-'$cols's  \x1b[36m%s\x1b[m\n", $1, $2}' |
   fzf --ansi --multi | sed 's#.*\(https*://\)#\1#' | xargs $open > /dev/null 2> /dev/null
 }
 
 # b - browse chrome bookmarks
 b() {
-     bookmarks_path=~/Library/Application\ Support/Google/Chrome/Default/Bookmarks
+    bookmarks_path=~/Library/Application\ Support/Google/Chrome/Default/Bookmarks
 
-     jq_script='
+    jq_script='
         def ancestors: while(. | length >= 2; del(.[-1,-2]));
         . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
 
@@ -243,7 +243,7 @@ fif() {
     --follow \
     --glob '!.git/*' \
     --glob '!.vscode-server/*' \
-     "$1" \
+    "$1" \
     | awk -F  ":" '/1/ {start = $2<5 ? 0 : $2 - 5; end = $2 + 5; print $1 " " $2 " " $3 " " start ":" end}' \
     | fzf \
         --bind 'ctrl-o:execute(code --goto {1}:{2}:{3})+cancel' \
@@ -251,10 +251,5 @@ fif() {
         --preview-window wrap
 }
 
-# Auto-completion
-# ---------------
-[[ $- == *i* ]] && source "/opt/homebrew/opt/fzf/shell/completion.zsh" 2> /dev/null
-
-# Key bindings
-# ------------
-source "/opt/homebrew/opt/fzf/shell/key-bindings.zsh"
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
