@@ -193,6 +193,18 @@ alacritty_install() {
     fmt_info "alacritty has installed"
 }
 
+tmux_plugin_install() {
+    if [[ -d "${HOME}/.tmux/plugins/tpm" ]]; then
+        fmt_info "tmux plugin manager has installed"
+        return
+    fi
+
+    git clone git@github.com:tmux-plugins/tpm ${HOME}/.tmux/plugins/tpm || {
+        fmt_error "git clone of tmux plugin manager repo failed"
+        exit 1
+    }
+}
+
 main() {
 
     # install Macos brew package manager.
@@ -219,11 +231,15 @@ main() {
     # ripgrep
     brew_installer ripgrep rg
 
+    # tmux
+    tmux_plugin_install
+    stow_config tmux
+
 }
 
 test() {
-    brew_installer stow
-
+    tmux_plugin_install
+    stow_config tmux
 }
 
 main "$@"

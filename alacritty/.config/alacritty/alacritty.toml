@@ -41,16 +41,16 @@ TERM = "xterm-256color"
 size = 16
 
 [font.bold]
-family = "FiraCode Nerd Font"
+family = "FiraMono Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "Menlo"
+family = "FiraMono Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "FiraCode Nerd Font"
-style = "Retina"
+family = "FiraMono Nerd Font"
+style = "Regular"
 
 [font.offset]
 x = 1
@@ -695,7 +695,7 @@ save_to_clipboard = false
 semantic_escape_chars = ",│`|:\"' ()[]{}<>\t@="
 
 [shell]
-args = ["-l", "-c", "source ~/.zshrc; tmux attach 2> /dev/null || tmux -f ~/.config/tmux/tmux.conf"]
+args = ["-l", "-c", "source ~/.zshrc; tmux -f ~/.tmux.conf"]
 program = "/bin/zsh"
 
 [window]
