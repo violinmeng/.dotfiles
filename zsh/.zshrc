@@ -106,15 +106,10 @@ alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# https://mirrors.ustc.edu.cn/help/homebrew-bottles.html
-# add ustc brew source
-export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
-export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles"
-export HOMEBREW_API_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
-
-# add llvm to path
-export PATH="/usr/local/opt/llvm/bin:$PATH"
-
 # load fzf configration
 [ -f ~/.config/z/z.sh ] && source ~/.config/z/z.sh
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
