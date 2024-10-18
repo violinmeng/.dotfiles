@@ -12,3 +12,5 @@ export HOMEBREW_API_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
 export PATH="$PATH:$HOME/.rvm/bin"
 
 export PATH=$HOME/Development/flutter/bin:$PATH
+export PATH="$PATH:$HOME/Library/Python/3.9/bin"
+. "$HOME/.cargo/env"

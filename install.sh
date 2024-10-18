@@ -112,6 +112,13 @@ stow_config() {
     fi
 }
 
+rust_installer() {
+    command_exists cargo || {
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+        fmt_info "install rust toolchain finished, Need restart current terminal."
+    }
+}
+
 zsh_install() {
     command_exists git || {
         fmt_error "git is not installed"
