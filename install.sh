@@ -119,6 +119,34 @@ rust_installer() {
     }
 }
 
+nvm_installer() {
+    command_exists nvm || {
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+        fmt_info "install nvm finished."
+    }
+}
+
+node_installer() {
+    command_exists node || {
+        nvm install node
+        fmt_info "install node finished."
+    }
+}
+
+rvm_installer() {
+    command_exists rvm || {
+        curl -sSL https://get.rvm.io | bash -s stable
+        fmt_info "install rvm finished."
+    }
+}
+
+ruby_installer() {
+    # install ruby version 3 above, need extra params;
+    1 || {
+        rvm install 3.3.5 --with-openssl-dir=`brew --prefix openssl`
+    }
+}
+
 zsh_install() {
     command_exists git || {
         fmt_error "git is not installed"
