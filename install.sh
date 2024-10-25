@@ -192,7 +192,7 @@ zsh_plugin_install() {
             exit 1
         }
     fi
-    
+
 
     if [[ -d "${ZSH_CUSTOM}/plugins/zsh-autosuggestions" ]]; then
         fmt_info "zsh-autosuggestions has installed"
@@ -202,10 +202,10 @@ zsh_plugin_install() {
             exit 1
         }
     fi
-    
+
 }
 
-z_install() {   
+z_install() {
     if [[ -d "${HOME}/.config/z" ]]; then
         fmt_info "z has installed"
         return
@@ -240,6 +240,33 @@ tmux_plugin_install() {
     }
 }
 
+llvm_installer() {
+    if [[ -d "$(brew --prefix llvm)"]]; then
+        fmt_info "tmux plugin manager has installed"
+        return
+    fi
+    brew install llvm
+
+    # link the clang-tidy and format tools
+    if [[ -d "$(brew --prefix llvm)"]]; then
+        ln -s "$(brew --prefix llvm)/bin/clang-format" "/usr/local/bin/clang-format"
+        ln -s "$(brew --prefix llvm)/bin/clang-tidy" "/usr/local/bin/clang-tidy"
+        ln -s "$(brew --prefix llvm)/bin/clang-apply-replacements" "/usr/local/bin/clang-apply-replacements"
+    fi
+}
+
+chsrc_installer() {
+    command_exists chsrc || {
+        brew install chsrc
+        command_exists chsrc || {
+            fmt_error "try to install chsrc with brew, but failed."
+            exit 1
+        }
+    }
+    fmt_info "chsrc has installed"
+    # chsrc set npm && chsrc set ruby
+}
+
 main() {
 
     # install Macos brew package manager.
@@ -247,7 +274,7 @@ main() {
 
     # install stow with brew. we can not setup these configration without this tools.
     brew_installer stow
-    
+
     # oh-my-zsh config and add custom config
     zsh_install
     stow_config zsh
