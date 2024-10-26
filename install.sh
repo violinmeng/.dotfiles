@@ -267,6 +267,14 @@ chsrc_installer() {
     # chsrc set npm && chsrc set ruby
 }
 
+haskell_tools_installer() {
+    command_exists ghcup || {
+        curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+    }
+    fmt_info "chsrc has installed"
+    # chsrc set npm && chsrc set ruby
+}
+
 main() {
 
     # install Macos brew package manager.
@@ -297,6 +305,14 @@ main() {
     tmux_plugin_install
     stow_config tmux
 
+    rust_installer
+    rvm_installer
+    node_installer
+    nvm_installer
+    ruby_installer
+    llvm_installer
+    haskell_tools_installer
+    chsrc_installer
 }
 
 test() {
