@@ -68,6 +68,9 @@ brew_install() {
         # install brew
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ${HOME}.zprofile
+        source ${HOME}.zprofile
+
         command_exists brew || {
             fmt_error "try to install brew but failed. please install brew manually and re-run this script."
             exit 1
@@ -241,14 +244,14 @@ tmux_plugin_install() {
 }
 
 llvm_installer() {
-    if [[ -d "$(brew --prefix llvm)"]]; then
+    if [[ -d "$(brew --prefix llvm)" ]]; then
         fmt_info "tmux plugin manager has installed"
         return
     fi
     brew install llvm
 
     # link the clang-tidy and format tools
-    if [[ -d "$(brew --prefix llvm)"]]; then
+    if [[ -d "$(brew --prefix llvm)" ]]; then
         ln -s "$(brew --prefix llvm)/bin/clang-format" "/usr/local/bin/clang-format"
         ln -s "$(brew --prefix llvm)/bin/clang-tidy" "/usr/local/bin/clang-tidy"
         ln -s "$(brew --prefix llvm)/bin/clang-apply-replacements" "/usr/local/bin/clang-apply-replacements"
@@ -302,6 +305,7 @@ main() {
     brew_installer ripgrep rg
 
     # tmux
+    brew_installer tmux
     tmux_plugin_install
     stow_config tmux
 
