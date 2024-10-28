@@ -21,46 +21,46 @@ fmt_info() {
 }
 
 setup_color() {
-  # Only use colors if connected to a terminal
-  if ! is_tty; then
-    FMT_RAINBOW=""
-    FMT_RED=""
-    FMT_GREEN=""
-    FMT_YELLOW=""
-    FMT_BLUE=""
-    FMT_BOLD=""
-    FMT_RESET=""
-    return
-  fi
+    # Only use colors if connected to a terminal
+    if ! is_tty; then
+        FMT_RAINBOW=""
+        FMT_RED=""
+        FMT_GREEN=""
+        FMT_YELLOW=""
+        FMT_BLUE=""
+        FMT_BOLD=""
+        FMT_RESET=""
+        return
+    fi
 
-  if supports_truecolor; then
-    FMT_RAINBOW="
-      $(printf '\033[38;2;255;0;0m')
-      $(printf '\033[38;2;255;97;0m')
-      $(printf '\033[38;2;247;255;0m')
-      $(printf '\033[38;2;0;255;30m')
-      $(printf '\033[38;2;77;0;255m')
-      $(printf '\033[38;2;168;0;255m')
-      $(printf '\033[38;2;245;0;172m')
-    "
-  else
-    FMT_RAINBOW="
-      $(printf '\033[38;5;196m')
-      $(printf '\033[38;5;202m')
-      $(printf '\033[38;5;226m')
-      $(printf '\033[38;5;082m')
-      $(printf '\033[38;5;021m')
-      $(printf '\033[38;5;093m')
-      $(printf '\033[38;5;163m')
-    "
-  fi
+    if supports_truecolor; then
+        FMT_RAINBOW="
+        $(printf '\033[38;2;255;0;0m')
+        $(printf '\033[38;2;255;97;0m')
+        $(printf '\033[38;2;247;255;0m')
+        $(printf '\033[38;2;0;255;30m')
+        $(printf '\033[38;2;77;0;255m')
+        $(printf '\033[38;2;168;0;255m')
+        $(printf '\033[38;2;245;0;172m')
+        "
+    else
+        FMT_RAINBOW="
+        $(printf '\033[38;5;196m')
+        $(printf '\033[38;5;202m')
+        $(printf '\033[38;5;226m')
+        $(printf '\033[38;5;082m')
+        $(printf '\033[38;5;021m')
+        $(printf '\033[38;5;093m')
+        $(printf '\033[38;5;163m')
+        "
+    fi
 
-  FMT_RED=$(printf '\033[31m')
-  FMT_GREEN=$(printf '\033[32m')
-  FMT_YELLOW=$(printf '\033[33m')
-  FMT_BLUE=$(printf '\033[34m')
-  FMT_BOLD=$(printf '\033[1m')
-  FMT_RESET=$(printf '\033[0m')
+    FMT_RED=$(printf '\033[31m')
+    FMT_GREEN=$(printf '\033[32m')
+    FMT_YELLOW=$(printf '\033[33m')
+    FMT_BLUE=$(printf '\033[34m')
+    FMT_BOLD=$(printf '\033[1m')
+    FMT_RESET=$(printf '\033[0m')
 }
 
 brew_install() {
@@ -136,17 +136,19 @@ node_installer() {
     }
 }
 
-rvm_installer() {
-    command_exists rvm || {
-        curl -sSL https://get.rvm.io | bash -s stable
-        fmt_info "install rvm finished."
+ruby_installer() {
+    # install ruby version 3 above, need extra params;
+    command_exists rbenv {
+        rbenv init
+        rbenv install 3.3.5
+        # rvm install 3.3.5 --with-openssl-dir=`brew --prefix openssl`
     }
 }
 
-ruby_installer() {
-    # install ruby version 3 above, need extra params;
-    1 || {
-        rvm install 3.3.5 --with-openssl-dir=`brew --prefix openssl`
+cocoapods_installer() {
+    command_exists pod || {
+        sudo gem install cocoapods
+        fmt_info "install cocoapods finished."
     }
 }
 
@@ -310,7 +312,7 @@ main() {
     stow_config tmux
 
     rust_installer
-    rvm_installer
+    brew_installer rbenv
     node_installer
     nvm_installer
     ruby_installer
