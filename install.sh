@@ -313,8 +313,8 @@ main() {
 
     rust_installer
     brew_installer rbenv
-    node_installer
     nvm_installer
+    node_installer
     ruby_installer
     llvm_installer
     haskell_tools_installer

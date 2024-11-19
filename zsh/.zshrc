@@ -115,3 +115,8 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 [ -f "/Users/wangalin/.ghcup/env" ] && . "/Users/wangalin/.ghcup/env" # ghcup-env
+
+export MY_PING_PATH=/Applications/SASE.app/Contents/Services
+export PATH=${MY_PING_PATH}:$PATH
+
+
