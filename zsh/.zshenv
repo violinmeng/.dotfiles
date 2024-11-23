@@ -15,5 +15,10 @@ export PATH="$PATH:$HOME/Library/Python/3.9/bin"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
 
+export MY_PING_PATH=/Applications/SASE.app/Contents/Services
+export PATH=${MY_PING_PATH}:$PATH
+
 # Android Studio's JDK path
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+
+export EDITOR=vim

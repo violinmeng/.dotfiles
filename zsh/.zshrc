@@ -116,7 +116,9 @@ export NVM_DIR="$HOME/.nvm"
 
 [ -f "/Users/wangalin/.ghcup/env" ] && . "/Users/wangalin/.ghcup/env" # ghcup-env
 
-export MY_PING_PATH=/Applications/SASE.app/Contents/Services
-export PATH=${MY_PING_PATH}:$PATH
-
-
+# zsh loading script order
+# .zshenv: 每次启动Zsh时都会加载。
+# .zprofile: 仅在登录Shell启动时加载。
+# .zshrc: 仅在交互式Shell启动时加载。
+# .zlogin: 仅在登录Shell启动时加载，且在.zshrc之后。
+# .zlogout: 仅在退出登录Shell时加载。
