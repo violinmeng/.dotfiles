@@ -104,6 +104,7 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
+alias vim="nvim"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # load fzf configration
@@ -122,3 +123,9 @@ export NVM_DIR="$HOME/.nvm"
 # .zshrc: 仅在交互式Shell启动时加载。
 # .zlogin: 仅在登录Shell启动时加载，且在.zshrc之后。
 # .zlogout: 仅在退出登录Shell时加载。
+# Created by `pipx` on 2024-12-06 11:24:25
+export PATH="$PATH:/Users/wangalin/.local/bin"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
