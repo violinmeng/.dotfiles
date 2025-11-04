@@ -8,7 +8,8 @@ export HOMEBREW_API_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
 # add llvm to path
 # export PATH="/usr/local/opt/llvm/bin:$PATH"
 
-export PATH=$HOME/development/flutter/bin:$PATH
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/development/flutter/bin:$PATH"
 export PATH="$PATH:$HOME/Library/Python/3.9/bin"
 . "$HOME/.cargo/env"
 
@@ -17,8 +18,14 @@ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/plat
 
 export MY_PING_PATH=/Applications/SASE.app/Contents/Services
 export PATH=${MY_PING_PATH}:$PATH
+export ANDROID_STUDIO_BIN=/Applications/Android\ Studio.app/Contents/MacOS
+export PATH=${ANDROID_STUDIO_BIN}:$PATH
 
 # Android Studio's JDK path
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+# export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+export EDITOR=nvim
 
-export EDITOR=vim
+# ZVM
+export ZVM_INSTALL="$HOME/.zvm/self"
+export PATH="$PATH:$HOME/.zvm/bin"
+export PATH="$PATH:$ZVM_INSTALL/"

@@ -29,3 +29,8 @@ Temporary Items
 # this project
 zsh/.zsh-custom/plugins
 vim/.vim/plugged
+
+# .gitignore in your dotfiles repo
+
+zsh/.zshrc.local
+*.local

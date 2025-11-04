@@ -4,25 +4,20 @@ vim.keymap.set('n', '0', '$')
 vim.keymap.set('n', '1', '^')
 vim.keymap.set('n', '2', '0')
 vim.keymap.set('n', '5', '%')
+-- 映射 - 为水平分割窗口
+vim.keymap.set('n', '-', ':split<CR>')
+-- 映射 | 为垂直分割窗口
+vim.keymap.set('n', '|', ':vsplit<CR>')
 -- 将后退映射为 <Leader>b
 vim.keymap.set('n', '<Leader>b', '<C-o>')
 -- 将前进映射为 <Leader>f
 vim.keymap.set('n', '<Leader>B', '<C-i>')
-vim.keymap.set('n', '<Leader>e', ':NvimTreeToggle<CR>')
+-- vim.keymap.set('n', '<Leader>e', ':NvimTreeToggle<CR>')
 -- 映射 <Leader>f 为 *
 vim.keymap.set('n', '<Leader>f', '*')
 -- 映射 <Leader>F 为 #
 vim.keymap.set('n', '<Leader>F', '#')
--- 查找缓冲区
-vim.keymap.set("n", "<Leader>fb", ":Telescope buffers<CR>")
--- 查找命令历史
-vim.keymap.set("n", "<Leader>fc", ":Telescope command_history<CR>")
--- 查找文件
-vim.keymap.set("n", "<Leader>ff", ":Telescope find_files<CR>")
--- 查找文本
-vim.keymap.set("n", "<Leader>fg", ":Telescope live_grep<CR>")
--- 查找帮助
-vim.keymap.set("n", "<Leader>fh", ":Telescope help_tags<CR>")
+
 -- 普通模式下，映射 <Leader>p 为粘贴系统剪贴板内容
 vim.keymap.set('n', '<Leader>p', '"+p')
 vim.keymap.set('n', '<Leader>q', ':q<CR>')  -- 退出
@@ -64,3 +59,100 @@ vim.keymap.set('t', '<M-k>', '<C-\\><C-N><C-w>k')
 vim.keymap.set('t', '<M-l>', '<C-\\><C-N><C-w>l')
 
 
+-- COPY FROM https://github.com/adibhanna/nvim/tree/main
+-- Learn and think why and how these works
+local opts = { noremap = true, silent = true }
+-- local map = vim.keymap.set
+
+-- Keep cursor centered when scrolling
+-- vim.keymap.set("n", "<C-d>", "<C-d>zz", opts)
+-- vim.keymap.set("n", "<C-u>", "<C-u>zz", opts)
+--
+-- Move selected line / block of text in visual mode
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", opts)
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", opts)
+
+-- Fast saving
+-- vim.keymap.set("n", "<leader>w", ":write!<CR>", { silent = true, desc = "Save file" })
+-- vim.keymap.set("n", "<leader>q", ":q!<CR>", opts)
+
+-- Remap for dealing with visual line wraps
+vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true })
+vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true })
+
+-- better indenting
+vim.keymap.set("v", "<", "<gv")
+vim.keymap.set("v", ">", ">gv")
+
+-- paste over currently selected text without yanking it
+vim.keymap.set("v", "p", '"_dp')
+vim.keymap.set("v", "P", '"_dP')
+
+-- copy everything between { and } including the brackets
+-- p puts text after the cursor,
+-- P puts text before the cursor.
+vim.keymap.set("n", "YY", "va{Vy", opts)
+
+-- Move line on the screen rather than by line in the file
+-- vim.keymap.set("n", "j", "gj", opts)
+-- vim.keymap.set("n", "k", "gk", opts)
+
+-- Exit on jj and jk
+vim.keymap.set("i", "jj", "<ESC>", opts)
+vim.keymap.set("i", "jk", "<ESC>", opts)
+
+-- Move to start/end of line
+vim.keymap.set({ "n", "x", "o" }, "H", "^", opts)
+vim.keymap.set({ "n", "x", "o" }, "L", "g_", opts)
+
+-- Navigate buffers
+vim.keymap.set("n", "<Right>", ":bnext<CR>", opts)
+vim.keymap.set("n", "<Left>", ":bprevious<CR>", opts)
+
+-- Panes resizing
+vim.keymap.set("n", "+", ":vertical resize +5<CR>")
+vim.keymap.set("n", "_", ":vertical resize -5<CR>")
+vim.keymap.set("n", "=", ":resize +5<CR>")
+vim.keymap.set("n", "-", ":resize -5<CR>")
+
+-- Map enter to ciw in normal mode
+-- vim.keymap.set("n", "<CR>", "ciw", opts)  -- Commented out: This overwrites word on Enter - too disruptive
+-- vim.keymap.set("n", "<BS>", "ci", opts)   -- Commented out: This changes text on Backspace - too disruptive
+
+vim.keymap.set("n", "n", "nzzv", opts)
+vim.keymap.set("n", "N", "Nzzv", opts)
+vim.keymap.set("n", "*", "*zzv", opts)
+vim.keymap.set("n", "#", "#zzv", opts)
+vim.keymap.set("n", "g*", "g*zz", opts)
+vim.keymap.set("n", "g#", "g#zz", opts)
+
+-- map ; to resume last search
+-- map("n", ";", "<cmd>Telescope resume<cr>", opts)
+
+-- search current buffer
+-- vim.keymap.set("n", "<C-s>", ":Telescope current_buffer_fuzzy_find<CR>", opts)
+
+-- Split line with X
+vim.keymap.set("n", "X", ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>", { silent = true })
+
+-- ctrl + x to cut full line
+vim.keymap.set("n", "<C-x>", "dd", opts)
+
+-- Select all
+vim.keymap.set("n", "<C-a>", "ggVG", opts)
+
+-- write file in current directory
+-- :w %:h/<new-file-name>
+vim.keymap.set("n", "<C-n>", ":w %:h/", opts)
+
+-- delete forward
+-- w{number}dw
+-- delete backward
+-- w{number}db
+
+vim.keymap.set("n", "<C-P>", ':lua require("config.utils").toggle_go_test()<CR>', opts)
+
+-- Get highlighted line numbers in visual mode
+vim.keymap.set("v", "<leader>ln", ':lua require("config.utils").get_highlighted_line_numbers()<CR>', opts)
+
+vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", opts)

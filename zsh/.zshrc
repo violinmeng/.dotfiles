@@ -105,6 +105,7 @@ source $ZSH/oh-my-zsh.sh
 alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
 alias vim="nvim"
+alias python="python3"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # load fzf configration
@@ -129,3 +130,20 @@ export PATH="$PATH:/Users/wangalin/.local/bin"
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+eval "$(mise activate zsh)"
+
+# pnpm
+export PNPM_HOME="/Users/wangalin/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# Load local and private configurations if the file exists
+# 安全地加载私有配置文件
+if [[ -f ~/.zshrc.local ]]; then
+source ~/.zshrc.local
+fi
