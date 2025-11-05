@@ -79,3 +79,5 @@ vim.o.scrolloff = 10
 -- instead raise a dialog asking if you wish to save the current file(s)
 -- See `:help 'confirm'`
 vim.o.confirm = true
+
+-- 在你的 init.lua 或一个专门的 options.lua 文件中
