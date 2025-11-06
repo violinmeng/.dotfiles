@@ -80,4 +80,8 @@ vim.o.scrolloff = 10
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
+
+-- for ufo.nvim fold settings
+-- vim.o.fillchars = 'eob: ,fold: ,foldopen:,foldsep: ,foldinner: ,foldclose:'
+
 -- 在你的 init.lua 或一个专门的 options.lua 文件中
