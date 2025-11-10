@@ -144,6 +144,6 @@ esac
 
 # Load local and private configurations if the file exists
 # 安全地加载私有配置文件
-if [[ -f ~/.zshrc.local ]]; then
-source ~/.zshrc.local
+if [[ -f ~/.zshrc.local.sh ]]; then
+source ~/.zshrc.local.sh
 fi

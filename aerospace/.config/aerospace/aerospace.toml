@@ -183,8 +183,9 @@ ctrl-alt-cmd-j = ['focus-monitor next', 'move-mouse window-force-center']
 c = ['move-mouse window-force-center']
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-tab = 'workspace-back-and-forth'
-
+tab = ['workspace-back-and-forth', 'move-mouse window-force-center', 'mode main']
+# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
+shift-tab = ['move-workspace-to-monitor --wrap-around next', 'move-mouse window-force-center', 'mode main']
 #
 # Moving
 #
@@ -202,10 +203,6 @@ ctrl-alt-cmd-shift-h = ['move-node-to-workspace prev']
 ctrl-alt-cmd-shift-l = ['move-node-to-workspace next']
 ctrl-alt-cmd-shift-k = ['move-workspace-to-monitor prev']
 ctrl-alt-cmd-shift-j = ['move-workspace-to-monitor next']
-
-
-# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 #
 # Resizing
@@ -371,13 +368,13 @@ if.app-name-regex-substring = 'Code - Insiders|Warp|Xcode|Simulator'
 run = ['layout tiling', 'move-node-to-workspace 2']
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Sublime Merge'
-run = ['layout tiling', 'move-node-to-workspace 3']
+if.app-name-regex-substring = 'Chrome|Firefox|Safari|Brave|Edge|Vivaldi|Opera'
+run = ['layout tiling', 'move-node-to-workspace G']
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Slack|Mailspring|Calendar|zoom.us'
-run = ['layout tiling', 'move-node-to-workspace 4']
+if.app-name-regex-substring = 'Cursor'
+run = ['layout tiling', 'move-node-to-workspace U']
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Signal|Discord|Messages'
-run = ['layout tiling', 'move-node-to-workspace 5']
+if.app-name-regex-substring = 'Xcode'
+run = ['layout tiling', 'move-node-to-workspace X']

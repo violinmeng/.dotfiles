@@ -32,5 +32,5 @@ vim/.vim/plugged
 
 # .gitignore in your dotfiles repo
 
-zsh/.zshrc.local
+zsh/.zshrc.local.sh
 *.local
