@@ -36,3 +36,35 @@ vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper win
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+
+-- Quick tab switcher: Move current line to a new tab
+vim.keymap.set("n", "<leader><tab>", "mc80A <esc>080lDgelD`cP", { desc = "Move current line to a new tab" })
+
+-- Terminal keymap to open a terminal at the bottom
+vim.keymap.set("n", "<leader>st", function()
+  vim.cmd.vnew()
+  vim.cmd.term()
+  vim.cmd.wincmd("J")
+  vim.api.nvim_win_set_height(0, 5)
+end)
+
+-- 退出终端模式并进入普通模式 (ESC)
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+
+-- 【黄金搭档】退出终端模式后，立即关闭终端窗口 (ESC 然后关闭)
+-- 这比先退出再手动 :q 快得多
+vim.keymap.set("t", "<C-w>", "<C-\\><C-n><C-w>c", { desc = "Close terminal window" })
+
+-- 【黄金搭档】退出终端模式后，切换到上一个窗口 (ESC 然后切换)
+-- 例如，你从某个窗口 splits 了一个终端，用完想直接回去
+vim.keymap.set("t", "<C-w>p", "<C-\\><C-n><C-w>p", { desc = "Switch to previous window" })
+
+-- 用空格键来切换折叠/展开 (非常实用！)
+-- vim.keymap.set("n", "<Space>", "za", { desc = "Toggle fold" })
+
+-- 映射 zc/zo 到更方便的键，比如 leader 前缀
+vim.keymap.set("n", "<leader>z", "zc", { desc = "Close fold" })
+vim.keymap.set("n", "<leader>Z", "zo", { desc = "Open fold" })
+
+vim.keymap.set("n", "<leader>zm", "zM", { desc = "Fold [M]ore (all)" })
+vim.keymap.set("n", "<leader>zr", "zR", { desc = "Fold [R]educe (none)" })

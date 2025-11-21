@@ -364,7 +364,7 @@ shift-j = ['move-node-to-monitor next']
 # run = 'layout floating'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Code - Insiders|Warp|Xcode|Simulator'
+if.app-name-regex-substring = 'Code - Insiders|Warp|Simulator'
 run = ['layout tiling', 'move-node-to-workspace 2']
 
 [[on-window-detected]]

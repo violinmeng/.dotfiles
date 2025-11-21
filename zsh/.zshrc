@@ -147,3 +147,5 @@ esac
 if [[ -f ~/.zshrc.local.sh ]]; then
 source ~/.zshrc.local.sh
 fi
+# Added by Antigravity
+export PATH="/Users/wangalin/.antigravity/antigravity/bin:$PATH"

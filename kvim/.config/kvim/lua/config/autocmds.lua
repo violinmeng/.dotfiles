@@ -11,3 +11,13 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 		vim.hl.on_yank()
 	end,
 })
+
+
+vim.api.nvim_create_autocmd("TermOpen", {
+	desc = "Open terminal in insert mode",
+	group = vim.api.nvim_create_augroup("kickstart-term-open", { clear = true }),
+	callback = function()
+		vim.opt.number = false
+		vim.opt.relativenumber = false
+	end,
+})
