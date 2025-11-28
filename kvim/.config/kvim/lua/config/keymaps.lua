@@ -9,8 +9,7 @@ vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
+-- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which is not what someone will guess without a bit more experience.
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
@@ -68,3 +67,15 @@ vim.keymap.set("n", "<leader>Z", "zo", { desc = "Open fold" })
 
 vim.keymap.set("n", "<leader>zm", "zM", { desc = "Fold [M]ore (all)" })
 vim.keymap.set("n", "<leader>zr", "zR", { desc = "Fold [R]educe (none)" })
+
+-- 快速到行首（包括空格）
+vim.keymap.set("n", "gh", "0", { noremap = true, desc = "到行首(含空格)" })
+vim.keymap.set("o", "gh", "0", { noremap = true, desc = "到行首(含空格)" })
+
+-- 快速到行尾
+vim.keymap.set("n", "gl", "$", { noremap = true, desc = "到行尾" })
+vim.keymap.set("o", "gl", "$", { noremap = true, desc = "到行尾" })
+
+-- Leader + h 跳到第一个非空白字符
+vim.keymap.set("n", "gj", "^", { noremap = true, desc = "到第一个非空白字符" })
+vim.keymap.set("o", "gj", "^", { noremap = true, desc = "到第一个非空白字符" })
