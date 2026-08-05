@@ -364,7 +364,7 @@ shift-j = ['move-node-to-monitor next']
 # run = 'layout floating'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Code - Insiders|Warp|Simulator'
+if.app-name-regex-substring = 'Visual Studio Code|Warp|Simulator'
 run = ['layout tiling', 'move-node-to-workspace 2']
 
 [[on-window-detected]]
@@ -382,3 +382,7 @@ run = ['layout tiling', 'move-node-to-workspace X']
 [[on-window-detected]]
 if.app-name-regex-substring = 'Finder'
 run = ['layout floating', 'move-node-to-workspace T']
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Zed'
+run = ['layout floating', 'move-node-to-workspace Z']

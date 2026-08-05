@@ -2,5 +2,8 @@
 web-search.json
 web-search-*.json
 
+# pi-acp session-to-file mappings
+pi-acp/
+
 # OS/editor noise
 .DS_Store

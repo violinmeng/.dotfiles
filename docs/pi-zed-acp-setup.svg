@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11131a"/><stop offset="1" stop-color="#1d2230"/>
+    </linearGradient>
+    <linearGradient id="pi" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#34d7e8"/><stop offset="0.52" stop-color="#e66bb7"/><stop offset="1" stop-color="#85e89d"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>
+      .ui{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.mono{font-family:"SFMono-Regular",Menlo,monospace}
+      .muted{fill:#8b93a7}.text{fill:#e7e9ee}.cyan{fill:#55d6e8}.pink{fill:#ef7bc0}.green{fill:#8ce99a}.orange{fill:#ffb86b}
+    </style>
+  </defs>
+  <rect width="1600" height="900" rx="28" fill="url(#bg)"/>
+  <rect x="28" y="28" width="1544" height="704" rx="18" fill="#151821" stroke="#3b4254"/>
+  <rect x="28" y="28" width="1544" height="54" rx="18" fill="#202431"/>
+  <circle cx="58" cy="55" r="7" fill="#ff6b6b"/><circle cx="82" cy="55" r="7" fill="#ffd166"/><circle cx="106" cy="55" r="7" fill="#72e3a6"/>
+  <text x="140" y="63" class="ui text" font-size="20" font-weight="650">Zed · Pi ACP workspace</text>
+  <text x="1450" y="62" class="ui muted" font-size="16">Connected</text><circle cx="1532" cy="55" r="6" fill="#72e3a6"/>
+
+  <rect x="28" y="82" width="260" height="650" fill="#12151d"/>
+  <text x="54" y="122" class="ui muted" font-size="15" font-weight="700">PROJECT</text>
+  <text x="54" y="166" class="mono text" font-size="17">▾ my-project</text>
+  <text x="76" y="204" class="mono cyan" font-size="16">◆ src</text>
+  <text x="100" y="240" class="mono text" font-size="16">main.ts</text>
+  <text x="100" y="276" class="mono text" font-size="16">app.ts</text>
+  <text x="76" y="312" class="mono muted" font-size="16">README.md</text>
+  <line x1="288" y1="82" x2="288" y2="732" stroke="#343a49"/>
+
+  <rect x="288" y="82" width="800" height="650" fill="#171a23"/>
+  <rect x="288" y="82" width="800" height="44" fill="#1c202b"/>
+  <text x="318" y="110" class="mono text" font-size="15">main.ts</text>
+  <text x="324" y="168" class="mono muted" font-size="17">1</text><text x="370" y="168" class="mono pink" font-size="17">import</text><text x="438" y="168" class="mono text" font-size="17"> { createServer } </text><text x="615" y="168" class="mono pink" font-size="17">from</text><text x="670" y="168" class="mono green" font-size="17"> "./server"</text>
+  <text x="324" y="210" class="mono muted" font-size="17">2</text>
+  <text x="324" y="252" class="mono muted" font-size="17">3</text><text x="370" y="252" class="mono pink" font-size="17">const</text><text x="430" y="252" class="mono text" font-size="17"> app = </text><text x="500" y="252" class="mono cyan" font-size="17">createServer</text><text x="625" y="252" class="mono text" font-size="17">()</text>
+  <text x="324" y="294" class="mono muted" font-size="17">4</text><text x="370" y="294" class="mono text" font-size="17">app.</text><text x="410" y="294" class="mono cyan" font-size="17">listen</text><text x="470" y="294" class="mono text" font-size="17">(</text><text x="482" y="294" class="mono orange" font-size="17">3000</text><text x="525" y="294" class="mono text" font-size="17">)</text>
+  <rect x="314" y="350" width="744" height="108" rx="12" fill="#202634" stroke="#3f5366"/>
+  <text x="340" y="385" class="ui cyan" font-size="16" font-weight="700">Pi applied an edit</text>
+  <text x="340" y="420" class="mono green" font-size="16">+ app.on("ready", () =&gt; console.log("ready"))</text>
+
+  <rect x="1088" y="82" width="484" height="650" fill="#12151d"/>
+  <line x1="1088" y1="82" x2="1088" y2="732" stroke="#343a49"/>
+  <rect x="1088" y="82" width="484" height="64" fill="#1d222e"/>
+  <text x="1118" y="123" class="ui text" font-size="22" font-weight="750">π  Pi ACP</text>
+  <rect x="1392" y="99" width="150" height="30" rx="15" fill="#253343"/>
+  <text x="1410" y="120" class="ui cyan" font-size="13">GPT-5.6 Sol · high</text>
+
+  <rect x="1114" y="174" width="430" height="96" rx="14" fill="#242936"/>
+  <text x="1138" y="207" class="ui muted" font-size="14" font-weight="700">YOU</text>
+  <text x="1138" y="241" class="ui text" font-size="17">Review main.ts and improve startup logging.</text>
+
+  <rect x="1114" y="292" width="430" height="214" rx="14" fill="#1b2630" stroke="#315366"/>
+  <text x="1138" y="327" class="ui cyan" font-size="14" font-weight="750">PI</text>
+  <text x="1138" y="362" class="ui text" font-size="17">I reviewed the startup path and added a</text>
+  <text x="1138" y="390" class="ui text" font-size="17">ready-state log after server initialization.</text>
+  <rect x="1138" y="420" width="382" height="56" rx="10" fill="#151b24"/>
+  <text x="1158" y="444" class="mono green" font-size="14">✓ edit  src/main.ts:5</text>
+  <text x="1158" y="466" class="mono muted" font-size="13">structured diff available</text>
+
+  <rect x="1114" y="644" width="430" height="58" rx="14" fill="#202531" stroke="#495064"/>
+  <text x="1138" y="680" class="ui muted" font-size="16">Ask Pi about this project…</text>
+
+  <text x="48" y="786" class="ui text" font-size="25" font-weight="750">How the finished setup works</text>
+  <g transform="translate(48 818)">
+    <rect x="0" y="0" width="250" height="54" rx="14" fill="#242a37" stroke="#4a5367"/>
+    <text x="125" y="34" text-anchor="middle" class="ui text" font-size="19" font-weight="700">Zed Agent Panel</text>
+    <text x="284" y="35" class="ui cyan" font-size="25">⇄</text>
+    <rect x="330" y="0" width="270" height="54" rx="14" fill="#242a37" stroke="#4a5367"/>
+    <text x="465" y="34" text-anchor="middle" class="ui text" font-size="19" font-weight="700">ACP JSON-RPC</text>
+    <text x="628" y="35" class="ui pink" font-size="25">⇄</text>
+    <rect x="675" y="0" width="230" height="54" rx="14" fill="#242a37" stroke="#4a5367"/>
+    <text x="790" y="34" text-anchor="middle" class="ui text" font-size="19" font-weight="700">pi-acp 0.0.33</text>
+    <text x="934" y="35" class="ui green" font-size="25">⇄</text>
+    <rect x="980" y="0" width="230" height="54" rx="14" fill="#242a37" stroke="#4a5367"/>
+    <text x="1095" y="34" text-anchor="middle" class="ui text" font-size="19" font-weight="700">Pi RPC</text>
+    <text x="1238" y="35" class="ui orange" font-size="25">⇄</text>
+    <rect x="1284" y="0" width="220" height="54" rx="14" fill="#242a37" stroke="#4a5367"/>
+    <text x="1394" y="34" text-anchor="middle" class="ui text" font-size="19" font-weight="700">Tools + Model</text>
+  </g>
+  <path d="M1320 42 C1370 5 1425 20 1470 40" fill="none" stroke="url(#pi)" stroke-width="5" opacity=".65" filter="url(#glow)"/>
+</svg>

@@ -1,0 +1,6 @@
+# Zed-generated local conversation state
+conversations/
+
+# OS/editor noise
+.DS_Store
+*.log
