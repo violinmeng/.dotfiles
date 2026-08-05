@@ -112,10 +112,6 @@ alias python="python3"
 [ -f ~/.config/z/z.sh ] && source ~/.config/z/z.sh
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 [ -f "/Users/wangalin/.ghcup/env" ] && . "/Users/wangalin/.ghcup/env" # ghcup-env
 
 # zsh loading script order
@@ -126,10 +122,6 @@ export NVM_DIR="$HOME/.nvm"
 # .zlogout: 仅在退出登录Shell时加载。
 # Created by `pipx` on 2024-12-06 11:24:25
 export PATH="$PATH:/Users/wangalin/.local/bin"
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 eval "$(mise activate zsh)"
@@ -149,3 +141,21 @@ source ~/.zshrc.local.sh
 fi
 # Added by Antigravity
 export PATH="/Users/wangalin/.antigravity/antigravity/bin:$PATH"
+
+# Resume Pi's newest persisted session for the current working directory by default.
+# Explicit session selection and non-interactive/package commands keep their normal behavior.
+pi() {
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      -c|--continue|-r|--resume|--session|--session=*|--fork|--fork=*|--no-session|\
+      -p|--print|--mode|--mode=*|--export|--list-models|-h|--help|-v|--version|\
+      install|remove|uninstall|update|list|config)
+        command pi "$@"
+        return
+        ;;
+    esac
+  done
+
+  command pi -c "$@"
+}

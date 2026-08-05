@@ -21,11 +21,8 @@ export PATH=${MY_PING_PATH}:$PATH
 export ANDROID_STUDIO_BIN=/Applications/Android\ Studio.app/Contents/MacOS
 export PATH=${ANDROID_STUDIO_BIN}:$PATH
 
+export PATH="/Users/wangalin/.bun/bin:$PATH"
+
 # Android Studio's JDK path
 # export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
 export EDITOR=nvim
-
-# ZVM
-export ZVM_INSTALL="$HOME/.zvm/self"
-export PATH="$PATH:$HOME/.zvm/bin"
-export PATH="$PATH:$ZVM_INSTALL/"

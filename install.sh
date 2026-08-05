@@ -311,6 +311,9 @@ main() {
     tmux_plugin_install
     stow_config tmux
 
+    # Pi configuration. Generated state stays inside the package but is Git-ignored.
+    stow_config pi
+
     rust_installer
     brew_installer rbenv
     nvm_installer

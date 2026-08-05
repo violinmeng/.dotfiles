@@ -1,0 +1,6 @@
+# Private provider/search credentials and runtime search state
+web-search.json
+web-search-*.json
+
+# OS/editor noise
+.DS_Store

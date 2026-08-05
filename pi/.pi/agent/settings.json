@@ -1,0 +1,45 @@
+{
+  "theme": "omp-titanium",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
+  "editorPaddingX": 2,
+  "powerline": {
+    "preset": "default",
+    "placement": "above",
+    "welcome": true
+  },
+  "terminal": {
+    "showImages": true,
+    "imageWidthCells": 60
+  },
+  "images": {
+    "autoResize": true,
+    "blockImages": false
+  },
+  "packages": [
+    {
+      "source": "npm:pi-vim@0.14.1",
+      "extensions": []
+    },
+    "npm:pi-web-access@0.18.0",
+    "npm:pi-mcp-adapter@2.20.1",
+    {
+      "source": "npm:@pi-archimedes/diff@1.8.3",
+      "extensions": []
+    },
+    {
+      "source": "npm:@pi-archimedes/image-paste@1.8.3",
+      "extensions": []
+    },
+    {
+      "source": "npm:@mariozechner/clipboard@0.3.9",
+      "extensions": [],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    },
+    "npm:pi-powerline-footer@0.12.1"
+  ],
+  "lastChangelogVersion": "0.83.0"
+}
