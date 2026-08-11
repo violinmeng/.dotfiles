@@ -314,6 +314,9 @@ main() {
     # Pi configuration. Generated state stays inside the package but is Git-ignored.
     stow_config pi
 
+    # Zed editor configuration, including the Pi ACP integration.
+    stow_config zed
+
     rust_installer
     brew_installer rbenv
     nvm_installer
