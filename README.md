@@ -16,6 +16,7 @@ Each top-level directory is a Stow package whose contents mirror paths under `$H
 | `ghostty` | Ghostty terminal emulator |
 | `git` | Global Git settings |
 | `kvim` | Kvim editor configuration |
+| `mise` | Global declarative runtime configuration |
 | `nvim` | Lua-based Neovim configuration |
 | `pi` | Pi coding-agent settings, extensions, models, and themes |
 | `tmux` | tmux and TPM integration |
@@ -24,18 +25,20 @@ Each top-level directory is a Stow package whose contents mirror paths under `$H
 | `zed` | Zed editor settings and Pi ACP integration |
 | `zsh` | Zsh, Oh My Zsh, environment, and custom shell settings |
 
-The `docs` directory contains supporting documentation and diagrams rather than files intended to be stowed.
+The `docs` directory contains supporting documentation and diagrams rather than files intended to be stowed. The root `Brewfile` declares system packages and applications managed by Homebrew Bundle.
 
 ## Prerequisites
 
-The configuration targets macOS. At minimum, install:
-
-- [Homebrew](https://brew.sh/)
-- [GNU Stow](https://www.gnu.org/software/stow/)
-- Git
+The configuration targets macOS. For the automated bootstrap, the only external prerequisite is a working Git installation, normally provided by the Xcode Command Line Tools:
 
 ```sh
-brew install stow
+xcode-select --install
+```
+
+`install.sh` provisions Homebrew and applies the root `Brewfile` when needed. To install the declared Homebrew dependencies manually:
+
+```sh
+brew bundle install --no-upgrade --file Brewfile
 ```
 
 Some packages require their corresponding applications to be installed separately.
@@ -76,24 +79,58 @@ If a real file already exists where Stow needs to create a symlink, move or back
 
 ## Bootstrap script
 
-`install.sh` is a personal macOS provisioning script. It attempts to install and configure:
+`install.sh` is an idempotent Bash bootstrap script for macOS. By default, it installs the core command-line environment, deploys the primary Stow packages, and configures language toolchains.
 
-- Homebrew and GNU Stow
-- Oh My Zsh and selected Zsh plugins
-- Alacritty
-- FZF, `fd`, and ripgrep
-- tmux and TPM
-- Pi and Zed configuration
-- Rust, Node.js, Ruby, LLVM, Haskell tooling, and `chsrc`
+Preview the complete setup without changing the system:
 
-Review the script before running it:
+```sh
+./install.sh --dry-run
+```
+
+Run the default installation:
 
 ```sh
 ./install.sh
 ```
 
+Install selected components or Stow packages:
+
+```sh
+./install.sh --packages zsh,tmux,nvim
+```
+
+Homebrew dependencies are treated as one atomic system layer. Selecting `brew` or any component backed by Homebrew applies the complete `Brewfile`, rather than installing only one formula from it.
+
+Deploy configuration without installing software:
+
+```sh
+./install.sh --stow-only --packages zsh,mise,tmux,zed,pi
+```
+
+Use `./install.sh --help` for the full component list and available options. Change system dependencies in `Brewfile` and runtime versions in the root `mise.toml`; the installer contains no duplicated package or runtime version list.
+
+### Tool-management layers
+
+The bootstrap deliberately assigns one responsibility to each manager:
+
+| Layer | Manager | Responsibilities |
+| --- | --- | --- |
+| macOS system | Homebrew Bundle | `mise`, GNU Stow, terminals, CLI tools, and runtime build dependencies declared in `Brewfile` |
+| Language runtimes | mise | Bun, Java, Node.js, Ruby, Rust, Tuist, and Zig declared in the global mise config |
+| Haskell ecosystem | GHCup | GHC, Cabal, and HLS as one compatible toolchain |
+| Configuration | GNU Stow | Shell, editor, terminal, agent, and application configuration |
+| Plugins and source checkouts | Git | Oh My Zsh, Zsh plugins, TPM, and `z` |
+
+Mise uses `~/.config/mise/config.toml` as its standard global declaration path. The repository keeps the canonical declaration in the root `mise.toml`; `mise/.config/mise/config.toml` is a relative symlink to that file, allowing Stow to expose the same declaration globally without duplication. The installer then runs `mise install`. On first migration, an existing regular config file is atomically moved to a timestamped backup before Stow takes ownership; if Stow fails, the original config is restored automatically. The tracked config includes the previously configured Bun, Java, Node.js, Tuist, and Zig entries plus Ruby and Rust. Project-specific versions can still be declared in each project's `mise.toml` and override these global defaults.
+
+Existing NVM, rbenv, or rustup installations are not deleted automatically. After verifying that projects and editor integrations resolve the mise-managed runtimes, those legacy installations can be removed manually if they are no longer needed.
+
+The mise shims directory is added to shell startup so globally configured runtimes also work in scripts and non-interactive shells. Interactive Zsh additionally uses `mise activate zsh` for automatic project switching. GHCup's bin directory is prepended after mise activation so the Haskell toolchain remains owned by GHCup.
+
+If the stowed Zsh configuration is unavailable, the installer adds minimal runtime setup to `~/.zshenv` and `~/.zshrc`. A later Zsh Stow installation automatically removes those files only when they still contain installer-generated lines exclusively; user-extended files are left untouched so Stow can report the conflict safely. Pass `--no-profile-update` to print required setup without modifying profile files.
+
 > [!WARNING]
-> The bootstrap script is currently a work in progress. It mixes POSIX shell and Bash syntax, contains machine-specific assumptions, performs network installations, and may require SSH credentials or elevated permissions. Prefer installing and stowing packages individually unless you have reviewed the script for your system.
+> The bootstrap downloads and executes official Homebrew and GHCup installers and clones third-party Git repositories. Runtime downloads are delegated to mise. Review the script and upstream sources before running it in a sensitive environment.
 
 ## Neovim
 

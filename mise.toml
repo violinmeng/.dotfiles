@@ -1,0 +1,8 @@
+[tools]
+bun = "latest"
+java = "jetbrains-17"
+node = "24"
+ruby = "3.3.5"
+rust = "stable"
+tuist = "latest"
+zig = "latest"

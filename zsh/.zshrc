@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -63,7 +63,7 @@ ZSH_THEME="wangalin"
 # HIST_STAMPS="mm/dd/yyyy"
 
 # Would you like to use another custom folder than $ZSH/custom?
-ZSH_CUSTOM="$HOME/.zsh-custom"
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.zsh-custom}"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -112,7 +112,7 @@ alias python="python3"
 [ -f ~/.config/z/z.sh ] && source ~/.config/z/z.sh
 [ -f ~/.config/fzf/fzf.zsh ] && source ~/.config/fzf/fzf.zsh
 
-[ -f "/Users/wangalin/.ghcup/env" ] && . "/Users/wangalin/.ghcup/env" # ghcup-env
+[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env" # ghcup-env
 
 # zsh loading script order
 # .zshenv: 每次启动Zsh时都会加载。
@@ -124,7 +124,10 @@ alias python="python3"
 export PATH="$PATH:/Users/wangalin/.local/bin"
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-eval "$(mise activate zsh)"
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
+export PATH="$HOME/.ghcup/bin:$PATH"
 
 # pnpm
 export PNPM_HOME="/Users/wangalin/Library/pnpm"

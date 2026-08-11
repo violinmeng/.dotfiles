@@ -33,7 +33,7 @@
     "claude-acp": {
       "type": "registry",
       "env": {
-        "CLAUDE_CODE_EXECUTABLE": "/Users/wangalin/.nvm/versions/node/v22.14.0/bin/claude"
+        "CLAUDE_CODE_EXECUTABLE": "/Users/wangalin/.local/bin/claude"
       }
     },
     "gemini-custom": {
