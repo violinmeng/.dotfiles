@@ -2,8 +2,10 @@
 web-search.json
 web-search-*.json
 
-# pi-acp session-to-file mappings
+# Extension runtime state
 pi-acp/
+pi-openai-fast-mode/
+extensions/pi-openai-fast-mode/
 
 # OS/editor noise
 .DS_Store

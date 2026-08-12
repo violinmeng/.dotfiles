@@ -9,6 +9,20 @@
     "placement": "above",
     "welcome": true
   },
+  "piVim": {
+    "modeColors": {
+      "insert": "success",
+      "normal": "borderAccent",
+      "visual": "warning",
+      "ex": "error"
+    },
+    "borderSync": {
+      "insert": "host",
+      "normal": "host",
+      "visual": "mode",
+      "ex": "mode"
+    }
+  },
   "terminal": {
     "showImages": true,
     "imageWidthCells": 60
@@ -17,6 +31,10 @@
     "autoResize": true,
     "blockImages": false
   },
+  "hideThinkingBlock": true,
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "collapseChangelog": true,
   "packages": [
     {
       "source": "npm:pi-vim@0.14.1",
@@ -39,7 +57,11 @@
       "prompts": [],
       "themes": []
     },
-    "npm:pi-powerline-footer@0.12.1"
+    "npm:pi-powerline-footer@0.12.1",
+    "npm:pi-openai-fast-mode@0.3.0",
+    "git:github.com/algal/pi-openai-server-compaction@8a3de2f3b0c178fdd6f73f2f94172dfc3943e466",
+    "npm:pi-tool-display@0.5.0",
+    "npm:pi-code-previews@0.1.36"
   ],
-  "lastChangelogVersion": "0.83.0"
+  "lastChangelogVersion": "0.84.0"
 }
