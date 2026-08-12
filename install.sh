@@ -59,6 +59,7 @@ STOW_PACKAGES=(
     fzf
     ghostty
     git
+    herdr
     kvim
     mise
     nvim
@@ -82,6 +83,7 @@ DEFAULT_COMPONENTS=(
     alacritty
     fzf
     tmux
+    herdr
     pi
     zed
     mise
@@ -94,6 +96,7 @@ DEFAULT_STOW_PACKAGES=(
     fzf
     mise
     tmux
+    herdr
     pi
     zed
 )

@@ -1,0 +1,5 @@
+# Herdr runtime state
+.plugins.lock
+*.log
+*.sock
+session.json
