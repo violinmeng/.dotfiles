@@ -105,6 +105,7 @@ source $ZSH/oh-my-zsh.sh
 alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
 alias vim="nvim"
+alias knvim="NVIM_APPNAME=kvim nvim"
 alias python="python3"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
