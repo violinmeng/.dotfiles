@@ -11,7 +11,7 @@ Each top-level directory is a Stow package whose contents mirror paths under `$H
 | `aerospace` | AeroSpace tiling window manager, including a Vim-style layout |
 | `alacritty` | Alacritty terminal emulator |
 | `apple-terminal-themes` | Color schemes for macOS Terminal |
-| `emacs` | Emacs |
+| `emacs` | Emacs configuration under `~/.config/emacs` |
 | `fzf` | Fuzzy-finder shell integration |
 | `ghostty` | Ghostty terminal emulator |
 | `git` | Global Git settings |
@@ -59,6 +59,7 @@ stow zsh
 stow git
 stow tmux
 stow nvim
+stow emacs
 stow zed
 stow pi
 ```
@@ -66,7 +67,7 @@ stow pi
 To install several packages at once:
 
 ```sh
-stow zsh git tmux nvim yazi ghostty aerospace zed pi
+stow zsh git tmux nvim emacs yazi ghostty aerospace zed pi
 ```
 
 To remove a package's symlinks without deleting its source files:
@@ -142,6 +143,10 @@ The Neovim configuration lives under `nvim/.config/nvim` and is organized into:
 - `lsp` — language-server-specific configuration
 
 Plugins are managed through Neovim's native package mechanism, with versions recorded in `nvim-pack-lock.json`.
+
+## Emacs
+
+The `emacs` package keeps the canonical configuration under `~/.config/emacs`, including `init.el`, Custom settings, and the package bootstrap helpers in `emacs.rc`. Because Emacs prefers an existing `~/.emacs.d`, a small compatibility loader at `~/.emacs.d/init.el` forwards startup to the XDG configuration while existing ELPA packages and runtime state remain in `~/.emacs.d`. The previous configuration is retained as `~/.config/emacs/init.el.backup`.
 
 ## Pi and Zed
 
