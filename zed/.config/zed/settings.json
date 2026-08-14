@@ -25,6 +25,7 @@
     "dock": "left"
   },
   "agent": {
+    "dock": "right",
     "sandbox_permissions": {
       "allow_unsandboxed": true
     },
