@@ -61,7 +61,8 @@
     "npm:pi-openai-fast-mode@0.3.0",
     "git:github.com/algal/pi-openai-server-compaction@8a3de2f3b0c178fdd6f73f2f94172dfc3943e466",
     "npm:pi-tool-display@0.5.0",
-    "npm:pi-code-previews@0.1.36"
+    "npm:pi-code-previews@0.1.36",
+    "npm:@tintinweb/pi-subagents"
   ],
   "lastChangelogVersion": "0.84.0"
 }
