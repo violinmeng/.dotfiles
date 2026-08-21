@@ -7,6 +7,7 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "cli_default_open_behavior": "new_window",
   "git": {
     "path_style": "file_path_first"
   },
@@ -34,6 +35,20 @@
     },
     "tool_permissions": {
       "tools": {
+        "write_file": {
+          "always_allow": [
+            {
+              "pattern": "^aerospace/\\.config/aerospace/"
+            }
+          ]
+        },
+        "fetch": {
+          "always_allow": [
+            {
+              "pattern": "^https?://nikitabobko\\.github\\.io"
+            }
+          ]
+        },
         "move_path": {
           "default": "allow"
         },
