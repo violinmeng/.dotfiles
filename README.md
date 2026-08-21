@@ -179,6 +179,68 @@ Useful desktop applications include:
 
 For Visual Studio Code, use the command palette and run **Shell Command: Install 'code' command in PATH** after installation.
 
+## Secret audit before pushing
+
+The root `.secret-audit.py` script performs a dependency-free audit of the committed Git objects that the next push would introduce. Run it after refreshing the remote-tracking branch:
+
+```sh
+git fetch origin
+./.secret-audit.py
+```
+
+The current branch's upstream is used as the base automatically. Override either side when needed:
+
+```sh
+./.secret-audit.py --base origin/main
+./.secret-audit.py --base origin/main --head feature-branch
+./.secret-audit.py --fail-on-privacy
+```
+
+### How the audit works
+
+1. The script resolves the upstream base and selected head revision.
+2. `git rev-list --objects <head> ^<base>` identifies every Git object reachable from the head but not from the base.
+3. Every unique outgoing text blob is scanned, including blobs introduced in an intermediate commit and removed by a later commit. Scanning only the final diff would miss that case because Git pushes the complete commit history.
+4. The scanner checks for known credential formats, private-key headers, credentials embedded in URLs, generic secret assignments, suspicious filenames, and high-entropy opaque strings.
+5. Email addresses, non-loopback IP addresses, commit author emails, and absolute home paths are reported separately as privacy-only findings.
+6. Matched secret values are never printed. Reports contain only a category, path, abbreviated blob or commit ID, and line number.
+7. Binary and oversized blobs are not silently accepted. The audit is marked incomplete unless they are reviewed separately or `--allow-unscanned` is explicitly supplied.
+
+The audit covers committed outgoing history. `working_tree_dirty=true` means uncommitted changes exist and were not part of the scan; they are also not part of a normal `git push`.
+
+### Reading the result
+
+| Field | Meaning | Default effect |
+| --- | --- | --- |
+| `hard_findings` | Known token formats, private keys, credential-bearing URLs, or credentials in the push URL | Blocks with exit `2` |
+| `generic_secret_assignments` | Non-placeholder values assigned to names such as `api_key`, `password`, or `client_secret` | Blocks with exit `2`; manually confirm possible false positives |
+| `high_entropy_candidates` | Long, opaque strings that statistically resemble tokens but do not match a known format | Requires review with exit `3` |
+| `sensitive_paths` | Files named like `.env`, `auth.json`, private keys, credentials, or secrets | Blocks with exit `2`, even if the content looks harmless |
+| `commit_message_findings` | Known secret patterns found in an outgoing commit message | Blocks with exit `2` |
+| `privacy_only_findings` | Usernames in home paths, emails, author metadata, or non-loopback IP addresses | Informational by default; exit `4` with `--fail-on-privacy` |
+| `unscanned_blobs` | Binary or oversized blobs that were not fully inspected | Marks the scan incomplete with exit `5` |
+
+Other useful fields:
+
+- `base_is_ancestor=false` indicates branch divergence. The unique objects are still scanned, but the branch relationship should be reviewed before pushing.
+- `working_tree_dirty=true` indicates that local uncommitted changes were outside the audit.
+- `outgoing_commits` and `unique_outgoing_objects` describe the scope of the scan.
+- `result=PASS` and exit `0` mean no blocking, entropy, or unscanned findings were detected. Privacy-only findings may still be present unless strict privacy mode was requested.
+
+Exit codes are stable for scripting:
+
+| Exit code | Result |
+| --- | --- |
+| `0` | `PASS` |
+| `1` | Git/configuration/audit execution error |
+| `2` | `BLOCKED` by a known or structurally suspicious secret |
+| `3` | `REVIEW_REQUIRED` for high-entropy candidates |
+| `4` | `PRIVACY_REVIEW_REQUIRED` when strict privacy mode is enabled |
+| `5` | `INCOMPLETE` because one or more blobs were not scanned |
+| `130` | Interrupted by the user |
+
+This is a heuristic safety net, not a proof that a repository contains no secrets. Review unusual findings manually. If a real credential is found, rotate or revoke it first and remove it from every affected commit; deleting it only from the latest file does not remove it from the history that Git pushes.
+
 ## Local customization
 
 Keep machine-specific or secret values out of tracked files. Prefer local override files, environment variables, or ignored configuration for credentials and host-specific settings.
