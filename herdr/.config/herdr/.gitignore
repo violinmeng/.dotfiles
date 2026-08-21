@@ -2,4 +2,5 @@
 .plugins.lock
 *.log
 *.sock
+release-notes.json
 session.json
