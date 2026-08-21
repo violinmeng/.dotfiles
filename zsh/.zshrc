@@ -163,3 +163,8 @@ pi() {
 
   command pi -c "$@"
 }
+# >>> ActionBridge shell integration >>>
+# Managed by ActionBridge. Use ActionBridge Settings to uninstall it.
+export ACTIONBRIDGE_SHELL_CONFIG="${HOME}/Library/Application Support/ActionBridge/ShellIntegration/config.json"
+export PATH="${HOME}/Library/Application Support/ActionBridge/ShellIntegration/bin:${PATH}"
+# <<< ActionBridge shell integration <<<
