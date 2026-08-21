@@ -50,13 +50,42 @@ persistent-workspaces = [
 ]
 
 [workspace-to-monitor-force-assignment]
-    1 = 1                            # Monitor sequence number from left to right. 1-based indexing
-    2 = 'main'                       # Main monitor
-    3 = 'secondary'                  # Non-main monitor in case when there are only two monitors
-    4 = 'built-in'                   # Case insensitive regex substring
-    5 = '^built-in retina display$'  # Case insensitive regex match
-    6 = ['secondary', 'dell']        # You can specify multiple patterns.
-                                     # The first matching pattern will be used
+    1 = 'built-in'
+    2 = 'built-in'
+    3 = 'built-in'
+    4 = 'built-in'
+    5 = 'built-in'
+    6 = 'secondary'
+    7 = 'secondary'
+    8 = 'secondary'
+    9 = 'secondary'
+    10 = 'secondary'
+    A = 'secondary'
+    B = 'secondary'
+    C = 'secondary'
+    D = 'secondary'
+    E = 'secondary'
+    F = 'secondary'
+    G = 'secondary'
+    H = 'secondary'
+    I = 'secondary'
+    J = 'secondary'
+    K = 'secondary'
+    L = 'secondary'
+    M = 'secondary'
+    N = 'secondary'
+    O = 'secondary'
+    P = 'secondary'
+    Q = 'secondary'
+    R = 'secondary'
+    S = 'secondary'
+    T = 'secondary'
+    U = 'secondary'
+    V = 'secondary'
+    W = 'secondary'
+    X = 'secondary'
+    Y = 'secondary'
+    Z = 'secondary'
 # Possible values: (qwerty|dvorak|colemak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
@@ -369,32 +398,11 @@ shift-j = ['move-node-to-monitor next']
     shift-z = ['move-node-to-workspace Z', 'workspace Z', 'mode main']
 
 #
-# Application-specific configurations
+# Application routing
 #
 
-# [[on-window-detected]]
-# run = 'layout floating'
-
+# Route new windows to the workspace matching the application's first ASCII
+# letter. Names beginning with a digit, symbol, or non-ASCII character stay put.
 [[on-window-detected]]
-if.app-name-regex-substring = 'Visual Studio Code|Warp|Simulator'
-run = ['layout tiling', 'move-node-to-workspace 2']
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Chrome|Firefox|Safari|Brave|Edge|Vivaldi|Opera'
-run = ['layout tiling', 'move-node-to-workspace G']
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Cursor'
-run = ['layout tiling', 'move-node-to-workspace U']
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Xcode'
-run = ['layout tiling', 'move-node-to-workspace X']
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Finder'
-run = ['layout floating', 'move-node-to-workspace T']
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Zed'
-run = ['layout floating', 'move-node-to-workspace Z']
+if = 'true'
+run = 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh"'
