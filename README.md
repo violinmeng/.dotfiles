@@ -80,7 +80,7 @@ If a real file already exists where Stow needs to create a symlink, move or back
 
 ## Bootstrap script
 
-`install.sh` is an idempotent Bash bootstrap script for macOS. By default, it installs the core command-line environment, deploys the primary Stow packages, and configures language toolchains.
+`install.sh` is an idempotent Bash bootstrap script for macOS. By default, it installs the core command-line environment, deploys the primary Stow packages, and configures language toolchains. After installing the Brewfile, it starts the GitHub CLI web login flow when `gh` is not already authenticated with `github.com`.
 
 Preview the complete setup without changing the system:
 

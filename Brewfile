@@ -6,6 +6,7 @@ brew "stow"
 brew "chsrc"
 brew "fd"
 brew "fzf"
+brew "gh"
 brew "ripgrep"
 brew "tmux"
 

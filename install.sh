@@ -46,6 +46,7 @@ BREW_BUNDLE_READY=false
 STOW_READY=false
 MISE_READY=false
 BREW_BIN=""
+GH_BIN=""
 MISE_BIN=""
 GHCUP_BIN=""
 MISE_CONFIG_BACKUP=""
@@ -549,6 +550,49 @@ ensure_brew_bundle() {
     BREW_BUNDLE_READY=true
 }
 
+find_github_cli() {
+    local homebrew_prefix
+
+    if command_exists gh; then
+        GH_BIN="$(command -v gh)"
+        return 0
+    fi
+
+    if [[ "$DRY_RUN" == true && ! -x "$BREW_BIN" ]]; then
+        homebrew_prefix="$(dirname -- "$(dirname -- "$BREW_BIN")")"
+    else
+        homebrew_prefix="$("$BREW_BIN" --prefix)"
+    fi
+    GH_BIN="$homebrew_prefix/bin/gh"
+
+    [[ "$DRY_RUN" == true || -x "$GH_BIN" ]]
+}
+
+ensure_github_auth() {
+    ensure_brew_bundle
+    find_github_cli || die "Brewfile installation completed, but the GitHub CLI is unavailable."
+
+    if [[ -x "$GH_BIN" ]] \
+        && "$GH_BIN" auth status --hostname github.com >/dev/null 2>&1; then
+        log_info "GitHub CLI is already authenticated with github.com."
+        record_skipped "github-auth"
+        return
+    fi
+
+    log_info "Authenticating the GitHub CLI with github.com..."
+    if [[ "$DRY_RUN" == true ]]; then
+        print_command "$GH_BIN" auth login --hostname github.com --web
+        record_planned "github-auth"
+        return
+    fi
+
+    "$GH_BIN" auth login --hostname github.com --web
+    "$GH_BIN" auth status --hostname github.com >/dev/null 2>&1 \
+        || die "GitHub CLI authentication did not complete successfully."
+    record_installed "github-auth"
+    log_success "Authenticated the GitHub CLI with github.com."
+}
+
 ensure_stow() {
     if [[ "$STOW_READY" == true ]]; then
         return
@@ -969,7 +1013,7 @@ install_component() {
 
     case "$component" in
         brew)
-            ensure_brew_bundle
+            ensure_github_auth
             ;;
         stow)
             ensure_stow
