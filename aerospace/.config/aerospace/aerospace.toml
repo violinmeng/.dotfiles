@@ -401,8 +401,9 @@ shift-j = ['move-node-to-monitor next']
 # Application routing
 #
 
-# Route the first window of apps installed under /Applications to the workspace
-# matching their first ASCII letter. Later windows and dialogs stay put.
+# Route and focus the first window of apps installed under /Applications, using
+# bundle-specific overrides before matching the first ASCII letter. Later windows
+# and dialogs stay put.
 [[on-window-detected]]
 if = 'true'
 run = 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh"'

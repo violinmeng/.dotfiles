@@ -7,8 +7,15 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PA
 
 workspace_for_app() {
     local app_name=${1-}
-    local initial=${app_name:0:1}
+    local app_bundle_id=${2-}
+    local initial
 
+    case "$app_bundle_id" in
+        com.electron.lark) printf '1\n'; return ;;
+        com.todesktop.230313mzl4w4u92) printf 'U\n'; return ;;
+    esac
+
+    initial=${app_name:0:1}
     initial=$(printf '%s' "$initial" | tr '[:lower:]' '[:upper:]')
     case "$initial" in
         [A-Z]) printf '%s\n' "$initial" ;;
@@ -49,18 +56,18 @@ is_first_app_window() {
 }
 
 if [[ ${1-} == '--print-workspace' ]]; then
-    if [[ $# -ne 3 ]]; then
-        printf 'Usage: %s --print-workspace APP_NAME APP_BUNDLE_PATH\n' "$0" >&2
+    if [[ $# -ne 4 ]]; then
+        printf 'Usage: %s --print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH\n' "$0" >&2
         exit 64
     fi
 
-    is_applications_bundle "$3" || exit 1
-    workspace_for_app "$2"
+    is_applications_bundle "$4" || exit 1
+    workspace_for_app "$2" "$3"
     exit
 fi
 
 if [[ $# -ne 0 ]]; then
-    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_PATH]\n' "$0" >&2
+    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH]\n' "$0" >&2
     exit 64
 fi
 
@@ -83,8 +90,9 @@ if ! app_name=$(aerospace echo --window-id "$window_id" -- '%{app-name}'); then
     exit 0
 fi
 
-if ! workspace=$(workspace_for_app "$app_name"); then
+if ! workspace=$(workspace_for_app "$app_name" "$app_bundle_id"); then
     exit 0
 fi
 
-aerospace move-node-to-workspace --window-id "$window_id" -- "$workspace"
+aerospace move-node-to-workspace --focus-follows-window \
+    --window-id "$window_id" -- "$workspace"
