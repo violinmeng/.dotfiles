@@ -21,6 +21,9 @@
   "collaboration_panel": {
     "dock": "right"
   },
+  "terminal": {
+    "dock": "right"
+  },
   /* Duplicated key auto-commented: "agent": {
     "favorite_models": [],
     "model_parameters": []
