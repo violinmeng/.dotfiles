@@ -55,6 +55,43 @@ is_first_app_window() {
     return 0
 }
 
+monitor_width_for_window() {
+    local window_id=$1
+    local monitor_name
+
+    monitor_name=$(aerospace echo --window-id "$window_id" -- '%{monitor-name}') || return 1
+    [[ -n $monitor_name ]] || return 1
+
+    osascript -l JavaScript - "$monitor_name" <<'JXA'
+ObjC.import('AppKit')
+
+function run(argv) {
+    const targetMonitor = argv[0]
+    for (const screen of $.NSScreen.screens.js) {
+        if (ObjC.unwrap(screen.localizedName) === targetMonitor) {
+            return String(Math.round(screen.visibleFrame.size.width))
+        }
+    }
+    return ''
+}
+JXA
+}
+
+resize_window_for_app() {
+    local window_id=$1
+    local app_bundle_id=$2
+    local monitor_width
+
+    case "$app_bundle_id" in
+        com.vphone.cli)
+            monitor_width=$(monitor_width_for_window "$window_id") || return 0
+            [[ $monitor_width =~ ^[0-9]+$ && $monitor_width -ge 4 ]] || return 0
+            aerospace layout --window-id "$window_id" tiling
+            aerospace resize --window-id "$window_id" width "$((monitor_width / 4))"
+            ;;
+    esac
+}
+
 if [[ ${1-} == '--print-workspace' ]]; then
     if [[ $# -ne 4 ]]; then
         printf 'Usage: %s --print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH\n' "$0" >&2
@@ -96,3 +133,4 @@ fi
 
 aerospace move-node-to-workspace --focus-follows-window \
     --window-id "$window_id" -- "$workspace"
+resize_window_for_app "$window_id" "$app_bundle_id"
