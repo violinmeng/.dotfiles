@@ -51,6 +51,9 @@
           "always_allow": [
             {
               "pattern": "^https?://nikitabobko\\.github\\.io"
+            },
+            {
+              "pattern": "^https?://raw\\.githubusercontent\\.com"
             }
           ]
         },
