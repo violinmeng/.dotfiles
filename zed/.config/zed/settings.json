@@ -22,7 +22,9 @@
     "dock": "right"
   },
   "terminal": {
-    "dock": "right"
+    "dock": "right",
+    "font_family": "FiraMono Nerd Font Mono",
+    "font_fallbacks": ["Symbols Nerd Font Mono"]
   },
   /* Duplicated key auto-commented: "agent": {
     "favorite_models": [],
