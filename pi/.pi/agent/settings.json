@@ -35,19 +35,25 @@
   "steeringMode": "all",
   "followUpMode": "all",
   "collapseChangelog": true,
+  "npmCommand": [
+    "npm",
+    "--save-exact",
+    "--no-audit",
+    "--no-fund"
+  ],
   "packages": [
     {
       "source": "npm:pi-vim@0.14.1",
       "extensions": []
     },
     "npm:pi-web-access@0.18.0",
-    "npm:pi-mcp-adapter@2.20.1",
+    "npm:pi-mcp-adapter@2.29.0",
     {
       "source": "npm:@pi-archimedes/diff@1.8.3",
       "extensions": []
     },
     {
-      "source": "npm:@pi-archimedes/image-paste@1.8.3",
+      "source": "npm:@pi-archimedes/image-paste@1.9.0",
       "extensions": []
     },
     {
@@ -57,12 +63,15 @@
       "prompts": [],
       "themes": []
     },
-    "npm:pi-powerline-footer@0.12.1",
+    "npm:pi-powerline-footer@0.12.3",
     "npm:pi-openai-fast-mode@0.3.0",
     "git:github.com/algal/pi-openai-server-compaction@8a3de2f3b0c178fdd6f73f2f94172dfc3943e466",
     "npm:pi-tool-display@0.5.0",
     "npm:pi-code-previews@0.1.36",
-    "npm:@tintinweb/pi-subagents"
+    "npm:@tintinweb/pi-subagents@0.19.0"
   ],
-  "lastChangelogVersion": "0.84.2"
+  "lastChangelogVersion": "0.84.3",
+  "modelThinkingLevels": {
+    "openai-codex/gpt-5.6-sol": "max"
+  }
 }

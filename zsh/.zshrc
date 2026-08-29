@@ -146,22 +146,45 @@ fi
 # Added by Antigravity
 export PATH="/Users/wangalin/.antigravity/antigravity/bin:$PATH"
 
+# Keep Pi's managed npm tree on the canonical side of the Stow symlink.
+PI_CODING_AGENT_DIR="$HOME/.pi/agent"
+export PI_CODING_AGENT_DIR="${PI_CODING_AGENT_DIR:A}"
+# Avoid launch-time network delays; update explicitly with `pi update`.
+export PI_SKIP_VERSION_CHECK=1
+
 # Resume Pi's newest persisted session for the current working directory by default.
 # Explicit session selection and non-interactive/package commands keep their normal behavior.
 pi() {
-  local arg
+  local arg pi_bin modular_cli package_manifest package_version
+  local -a pi_command
+
+  pi_bin="${commands[pi]:A}"
+  pi_command=("$pi_bin")
+
+  # Pi 0.84.3's bundled CLI cannot resolve extension peer dependencies.
+  # Use the modular entry only for that release so a future update restores
+  # the supported bundled entry point automatically.
+  package_manifest="${pi_bin:h:h:h}/package.json"
+  modular_cli="${pi_bin:h:h}/cli.js"
+  if [[ "$pi_bin" == */dist/bundle/cli.js && -r "$package_manifest" && -x "$modular_cli" ]]; then
+    package_version="$(<"$package_manifest")"
+    if [[ "$package_version" == *'"version": "0.84.3"'* ]]; then
+      pi_command=(node "$modular_cli")
+    fi
+  fi
+
   for arg in "$@"; do
     case "$arg" in
       -c|--continue|-r|--resume|--session|--session=*|--fork|--fork=*|--no-session|\
       -p|--print|--mode|--mode=*|--export|--list-models|-h|--help|-v|--version|\
       install|remove|uninstall|update|list|config)
-        command pi "$@"
+        command "${pi_command[@]}" "$@"
         return
         ;;
     esac
   done
 
-  command pi -c "$@"
+  command "${pi_command[@]}" -c "$@"
 }
 # >>> ActionBridge shell integration >>>
 # Managed by ActionBridge. Use ActionBridge Settings to uninstall it.
