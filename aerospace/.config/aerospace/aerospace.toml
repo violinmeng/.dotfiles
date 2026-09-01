@@ -39,6 +39,11 @@ default-root-container-orientation = 'auto'
 # Fallback value (if you omit the key): on-focused-monitor-changed = []
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
+# Reapply app-specific sizing after a window is moved to another workspace.
+on-focus-changed = [
+    'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --resize-vphone-windows-in-focused-workspace',
+]
+
 # You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
 # Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
 # Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
