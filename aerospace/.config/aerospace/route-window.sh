@@ -92,6 +92,16 @@ resize_window_for_app() {
     esac
 }
 
+resize_existing_vphone_windows() {
+    local window_id
+
+    while IFS= read -r window_id; do
+        [[ -n $window_id ]] || continue
+        resize_window_for_app "$window_id" com.vphone.cli
+    done < <(aerospace list-windows --monitor all --app-bundle-id com.vphone.cli \
+        --format '%{window-id}')
+}
+
 if [[ ${1-} == '--print-workspace' ]]; then
     if [[ $# -ne 4 ]]; then
         printf 'Usage: %s --print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH\n' "$0" >&2
@@ -103,8 +113,15 @@ if [[ ${1-} == '--print-workspace' ]]; then
     exit
 fi
 
+if [[ ${1-} == '--resize-vphone-windows' ]]; then
+    [[ $# -eq 1 ]] || exit 64
+    command -v aerospace >/dev/null 2>&1 || exit 0
+    resize_existing_vphone_windows
+    exit
+fi
+
 if [[ $# -ne 0 ]]; then
-    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH]\n' "$0" >&2
+    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH | --resize-vphone-windows]\n' "$0" >&2
     exit 64
 fi
 

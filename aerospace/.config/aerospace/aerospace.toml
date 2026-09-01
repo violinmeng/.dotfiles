@@ -7,7 +7,10 @@ config-version = 2
 
 # You can use it to add commands that run after AeroSpace startup.
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = []
+# Resize vphone-cli even when it was already open before AeroSpace started.
+after-startup-command = [
+    'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --resize-vphone-windows',
+]
 
 # Start AeroSpace at login
 start-at-login = true
