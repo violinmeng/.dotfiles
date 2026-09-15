@@ -8,6 +8,7 @@ Each top-level directory is a Stow package whose contents mirror paths under `$H
 
 | Package | Configuration |
 | --- | --- |
+| `agents` | Shared global agent skills and installation metadata under `~/.agents` |
 | `aerospace` | AeroSpace tiling window manager, including a Vim-style layout |
 | `alacritty` | Alacritty terminal emulator |
 | `apple-terminal-themes` | Color schemes for macOS Terminal |
@@ -62,12 +63,13 @@ stow nvim
 stow emacs
 stow zed
 stow pi
+stow agents
 ```
 
 To install several packages at once:
 
 ```sh
-stow zsh git tmux nvim emacs yazi ghostty aerospace zed pi
+stow zsh git tmux nvim emacs yazi ghostty aerospace zed pi agents
 ```
 
 To remove a package's symlinks without deleting its source files:
@@ -147,6 +149,24 @@ Plugins are managed through Neovim's native package mechanism, with versions rec
 ## Emacs
 
 The `emacs` package keeps the canonical configuration under `~/.config/emacs`, including `init.el`, Custom settings, and the package bootstrap helpers in `emacs.rc`. Because Emacs prefers an existing `~/.emacs.d`, a small compatibility loader at `~/.emacs.d/init.el` forwards startup to the XDG configuration while existing ELPA packages and runtime state remain in `~/.emacs.d`. The previous configuration is retained as `~/.config/emacs/init.el.backup`.
+
+## Shared agent skills
+
+The `agents` package keeps global skills and `.skill-lock.json` under
+`agents/.agents`. Stow links this directory to `~/.agents`, so skill additions
+and updates through that path are visible in the dotfiles working tree. The
+package is included in both default bootstrap and default `--stow-only` installs.
+Existing `~/.agents` directories must be backed up and their desired contents
+merged into the package before stowing; do not overwrite them blindly.
+
+Pi discovers `~/.agents/skills` automatically. Other compatible agents can use
+this shared location or their existing links to it. The included
+[`show-me`](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me)
+skill explains code visually. In Pi, invoke it with `/skill:show-me` after
+restarting Pi to discover newly installed skills.
+
+Keep credentials and local runtime state out of the package, and review
+third-party skills before use.
 
 ## Pi and Zed
 

@@ -54,6 +54,7 @@ MISE_CONFIG_MOVED=false
 DOWNLOADED_SCRIPT=""
 
 STOW_PACKAGES=(
+    agents
     aerospace
     alacritty
     emacs
@@ -80,6 +81,7 @@ SOFTWARE_COMPONENTS=(
 
 DEFAULT_COMPONENTS=(
     brew
+    agents
     zsh
     alacritty
     fzf
@@ -92,6 +94,7 @@ DEFAULT_COMPONENTS=(
 )
 
 DEFAULT_STOW_PACKAGES=(
+    agents
     zsh
     alacritty
     fzf
