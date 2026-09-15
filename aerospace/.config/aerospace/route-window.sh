@@ -36,14 +36,14 @@ is_applications_bundle() {
     esac
 }
 
-is_first_app_window() {
+is_first_app_process_window() {
     local current_window_id=$1
-    local app_bundle_id=$2
+    local app_pid=$2
     local app_window_ids
     local candidate_window_id
 
     if ! app_window_ids=$(aerospace list-windows --monitor all \
-        --app-bundle-id "$app_bundle_id" --format '%{window-id}'); then
+        --pid "$app_pid" --format '%{window-id}'); then
         return 1
     fi
 
@@ -162,7 +162,12 @@ if ! app_bundle_id=$(aerospace echo --window-id "$window_id" -- '%{app-bundle-id
     exit 0
 fi
 [[ -n $app_bundle_id ]] || exit 0
-is_first_app_window "$window_id" "$app_bundle_id" || exit 0
+
+if ! app_pid=$(aerospace echo --window-id "$window_id" -- '%{app-pid}'); then
+    exit 0
+fi
+[[ $app_pid =~ ^[1-9][0-9]*$ ]] || exit 0
+is_first_app_process_window "$window_id" "$app_pid" || exit 0
 
 if ! app_name=$(aerospace echo --window-id "$window_id" -- '%{app-name}'); then
     exit 0
@@ -172,8 +177,8 @@ if ! workspace=$(workspace_for_app "$app_name" "$app_bundle_id"); then
     exit 0
 fi
 
-aerospace move-node-to-workspace --focus-follows-window \
-    --window-id "$window_id" -- "$workspace"
+# Moving silently keeps a concurrently appearing authorization dialog focused.
+aerospace move-node-to-workspace --window-id "$window_id" -- "$workspace"
 if [[ $app_bundle_id == com.vphone.cli ]]; then
     resize_vphone_windows --workspace "$workspace"
 else
