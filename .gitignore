@@ -1,5 +1,6 @@
 
 # General
+__pycache__/
 .DS_Store
 *.profraw
 .AppleDouble

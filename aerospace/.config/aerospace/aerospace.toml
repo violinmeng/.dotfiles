@@ -9,6 +9,7 @@ config-version = 2
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
 # Resize vphone-cli even when it was already open before AeroSpace started.
 after-startup-command = [
+    'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --seed-workspaces',
     'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --resize-vphone-windows',
 ]
 
@@ -41,6 +42,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
 # Reapply app-specific sizing after a window is moved to another workspace.
 on-focus-changed = [
+    'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces',
     'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --resize-vphone-windows-in-focused-workspace',
 ]
 
@@ -234,7 +236,7 @@ c = ['move-mouse window-force-center']
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
 tab = ['workspace-back-and-forth', 'move-mouse window-force-center', 'mode main']
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
-shift-tab = ['move-workspace-to-monitor --wrap-around next', 'move-mouse window-force-center', 'mode main']
+shift-tab = ['move-workspace-to-monitor --wrap-around next', 'move-mouse window-force-center', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
 #
 # Moving
 #
@@ -244,14 +246,14 @@ shift-h = 'move left'
 shift-j = 'move down'
 shift-k = 'move up'
 shift-l = 'move right'
-shift-u = 'move-node-to-workspace prev'
-shift-i = 'move-node-to-workspace next'
-shift-p = 'move-workspace-to-monitor prev'
-shift-n = 'move-workspace-to-monitor next'
-ctrl-alt-cmd-shift-h = ['move-node-to-workspace prev']
-ctrl-alt-cmd-shift-l = ['move-node-to-workspace next']
-ctrl-alt-cmd-shift-k = ['move-workspace-to-monitor prev']
-ctrl-alt-cmd-shift-j = ['move-workspace-to-monitor next']
+shift-u = ['move-node-to-workspace prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-i = ['move-node-to-workspace next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-p = ['move-workspace-to-monitor prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-n = ['move-workspace-to-monitor next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+ctrl-alt-cmd-shift-h = ['move-node-to-workspace prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+ctrl-alt-cmd-shift-l = ['move-node-to-workspace next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+ctrl-alt-cmd-shift-k = ['move-workspace-to-monitor prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+ctrl-alt-cmd-shift-j = ['move-workspace-to-monitor next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
 
 #
 # Resizing
@@ -322,10 +324,10 @@ h = ['workspace prev', 'move-mouse window-force-center']
 l = ['workspace next', 'move-mouse window-force-center']
 j = ['focus-monitor next', 'move-mouse window-force-center']
 k = ['focus-monitor prev', 'move-mouse window-force-center']
-shift-h = ['move-node-to-workspace prev']
-shift-l = ['move-node-to-workspace next']
-shift-k = ['move-node-to-monitor prev']
-shift-j = ['move-node-to-monitor next']
+shift-h = ['move-node-to-workspace prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-l = ['move-node-to-workspace next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-k = ['move-node-to-monitor prev', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+shift-j = ['move-node-to-monitor next', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
 
 [mode.edit-workspace.binding]
     space = 'mode main'
@@ -368,50 +370,50 @@ shift-j = ['move-node-to-monitor next']
     z = ['workspace Z', 'move-mouse window-force-center', 'mode main']
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
-    shift-1 = ['move-node-to-workspace 1', 'workspace 1', 'mode main']
-    shift-2 = ['move-node-to-workspace 2', 'workspace 2', 'mode main']
-    shift-3 = ['move-node-to-workspace 3', 'workspace 3', 'mode main']
-    shift-4 = ['move-node-to-workspace 4', 'workspace 4', 'mode main']
-    shift-5 = ['move-node-to-workspace 5', 'workspace 5', 'mode main']
-    shift-6 = ['move-node-to-workspace 6', 'workspace 6', 'mode main']
-    shift-7 = ['move-node-to-workspace 7', 'workspace 7', 'mode main']
-    shift-8 = ['move-node-to-workspace 8', 'workspace 8', 'mode main']
-    shift-9 = ['move-node-to-workspace 9', 'workspace 9', 'mode main']
-    shift-0 = ['move-node-to-workspace 10', 'workspace 10', 'mode main']
-    shift-a = ['move-node-to-workspace A', 'workspace A', 'mode main']
-    shift-b = ['move-node-to-workspace B', 'workspace B', 'mode main']
-    shift-c = ['move-node-to-workspace C', 'workspace C', 'mode main']
-    shift-d = ['move-node-to-workspace D', 'workspace D', 'mode main']
-    shift-e = ['move-node-to-workspace E', 'workspace E', 'mode main']
-    shift-f = ['move-node-to-workspace F', 'workspace F', 'mode main']
-    shift-g = ['move-node-to-workspace G', 'workspace G', 'mode main']
-    shift-h = ['move-node-to-workspace H', 'workspace H', 'mode main']
-    shift-i = ['move-node-to-workspace I', 'workspace I', 'mode main']
-    shift-j = ['move-node-to-workspace J', 'workspace J', 'mode main']
-    shift-k = ['move-node-to-workspace K', 'workspace K', 'mode main']
-    shift-l = ['move-node-to-workspace L', 'workspace L', 'mode main']
-    shift-m = ['move-node-to-workspace M', 'workspace M', 'mode main']
-    shift-n = ['move-node-to-workspace N', 'workspace N', 'mode main']
-    shift-o = ['move-node-to-workspace O', 'workspace O', 'mode main']
-    shift-p = ['move-node-to-workspace P', 'workspace P', 'mode main']
-    shift-q = ['move-node-to-workspace Q', 'workspace Q', 'mode main']
-    shift-r = ['move-node-to-workspace R', 'workspace R', 'mode main']
-    shift-s = ['move-node-to-workspace S', 'workspace S', 'mode main']
-    shift-t = ['move-node-to-workspace T', 'workspace T', 'mode main']
-    shift-u = ['move-node-to-workspace U', 'workspace U', 'mode main']
-    shift-v = ['move-node-to-workspace V', 'workspace V', 'mode main']
-    shift-w = ['move-node-to-workspace W', 'workspace W', 'mode main']
-    shift-x = ['move-node-to-workspace X', 'workspace X', 'mode main']
-    shift-y = ['move-node-to-workspace Y', 'workspace Y', 'mode main']
-    shift-z = ['move-node-to-workspace Z', 'workspace Z', 'mode main']
+    shift-1 = ['move-node-to-workspace 1', 'workspace 1', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-2 = ['move-node-to-workspace 2', 'workspace 2', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-3 = ['move-node-to-workspace 3', 'workspace 3', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-4 = ['move-node-to-workspace 4', 'workspace 4', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-5 = ['move-node-to-workspace 5', 'workspace 5', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-6 = ['move-node-to-workspace 6', 'workspace 6', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-7 = ['move-node-to-workspace 7', 'workspace 7', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-8 = ['move-node-to-workspace 8', 'workspace 8', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-9 = ['move-node-to-workspace 9', 'workspace 9', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-0 = ['move-node-to-workspace 10', 'workspace 10', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-a = ['move-node-to-workspace A', 'workspace A', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-b = ['move-node-to-workspace B', 'workspace B', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-c = ['move-node-to-workspace C', 'workspace C', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-d = ['move-node-to-workspace D', 'workspace D', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-e = ['move-node-to-workspace E', 'workspace E', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-f = ['move-node-to-workspace F', 'workspace F', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-g = ['move-node-to-workspace G', 'workspace G', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-h = ['move-node-to-workspace H', 'workspace H', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-i = ['move-node-to-workspace I', 'workspace I', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-j = ['move-node-to-workspace J', 'workspace J', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-k = ['move-node-to-workspace K', 'workspace K', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-l = ['move-node-to-workspace L', 'workspace L', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-m = ['move-node-to-workspace M', 'workspace M', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-n = ['move-node-to-workspace N', 'workspace N', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-o = ['move-node-to-workspace O', 'workspace O', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-p = ['move-node-to-workspace P', 'workspace P', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-q = ['move-node-to-workspace Q', 'workspace Q', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-r = ['move-node-to-workspace R', 'workspace R', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-s = ['move-node-to-workspace S', 'workspace S', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-t = ['move-node-to-workspace T', 'workspace T', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-u = ['move-node-to-workspace U', 'workspace U', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-v = ['move-node-to-workspace V', 'workspace V', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-w = ['move-node-to-workspace W', 'workspace W', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-x = ['move-node-to-workspace X', 'workspace X', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-y = ['move-node-to-workspace Y', 'workspace Y', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
+    shift-z = ['move-node-to-workspace Z', 'workspace Z', 'mode main', 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh" --remember-workspaces']
 
 #
 # Application routing
 #
 
-# Route the first managed window of each app process installed under /Applications,
-# using bundle-specific overrides before matching the first ASCII letter. Later
-# managed windows from the same process stay put.
+# Restore the last workspace for the first managed window of each app process
+# installed under /Applications. Without history, use bundle-specific overrides
+# then the first ASCII letter. Later managed windows stay put.
 [[on-window-detected]]
 if = 'true'
 run = 'exec-and-forget "${HOME}/.config/aerospace/route-window.sh"'

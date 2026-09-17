@@ -150,6 +150,35 @@ Plugins are managed through Neovim's native package mechanism, with versions rec
 
 The `emacs` package keeps the canonical configuration under `~/.config/emacs`, including `init.el`, Custom settings, and the package bootstrap helpers in `emacs.rc`. Because Emacs prefers an existing `~/.emacs.d`, a small compatibility loader at `~/.emacs.d/init.el` forwards startup to the XDG configuration while existing ELPA packages and runtime state remain in `~/.emacs.d`. The previous configuration is retained as `~/.config/emacs/init.el.backup`.
 
+## AeroSpace workspace memory
+
+Applications installed under `/Applications` restore their last recorded workspace
+when their first managed window opens. Without a saved workspace, the existing
+bundle overrides (Feishu → `1`, Cursor → `U`) and first-ASCII-letter rule apply.
+Later windows from the same process stay where they opened.
+
+The routing helper records focus changes and moves made with the configured
+workspace/monitor shortcuts. If an app has windows in multiple workspaces, a move
+takes priority; otherwise the last focused window determines the saved workspace.
+New windows are registered only after routing, so their initial position cannot
+overwrite the saved destination. Existing windows are registered at AeroSpace
+startup without replacing saved destinations.
+
+State is stored outside Git in
+`~/Library/Application Support/AeroSpace/app-workspaces.json`. The helper requires
+Python 3 and uses file locking and atomic writes. To record moves made through an
+external CLI that do not change focus, run:
+
+```sh
+~/.config/aerospace/route-window.sh --remember-workspaces
+```
+
+To reset remembered workspaces, remove that JSON file. Run the regression tests:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_aerospace*.py'
+```
+
 ## Shared agent skills
 
 The `agents` package keeps global skills and `.skill-lock.json` under

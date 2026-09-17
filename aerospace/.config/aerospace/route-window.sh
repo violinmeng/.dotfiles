@@ -5,10 +5,22 @@ set -euo pipefail
 export LC_ALL=C
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH:-}"
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+workspace_memory() {
+    python3 "$SCRIPT_DIR/workspace-memory.py" "$@"
+}
+
 workspace_for_app() {
     local app_name=${1-}
     local app_bundle_id=${2-}
     local initial
+    local remembered_workspace
+
+    if remembered_workspace=$(workspace_memory get "$app_bundle_id"); then
+        printf '%s\n' "$remembered_workspace"
+        return
+    fi
 
     case "$app_bundle_id" in
         com.electron.lark) printf '1\n'; return ;;
@@ -119,6 +131,14 @@ resize_vphone_windows_in_focused_workspace() {
     resize_vphone_windows --workspace "$workspace"
 }
 
+if [[ ${1-} == '--remember-workspaces' || ${1-} == '--seed-workspaces' ]]; then
+    [[ $# -eq 1 ]] || exit 64
+    action=refresh
+    [[ $1 != '--seed-workspaces' ]] || action=seed
+    workspace_memory "$action" || true
+    exit
+fi
+
 if [[ ${1-} == '--print-workspace' ]]; then
     if [[ $# -ne 4 ]]; then
         printf 'Usage: %s --print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH\n' "$0" >&2
@@ -145,7 +165,7 @@ if [[ ${1-} == '--resize-vphone-windows-in-focused-workspace' ]]; then
 fi
 
 if [[ $# -ne 0 ]]; then
-    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH | --resize-vphone-windows | --resize-vphone-windows-in-focused-workspace]\n' "$0" >&2
+    printf 'Usage: %s [--print-workspace APP_NAME APP_BUNDLE_ID APP_BUNDLE_PATH | --resize-vphone-windows | --resize-vphone-windows-in-focused-workspace | --remember-workspaces | --seed-workspaces]\n' "$0" >&2
     exit 64
 fi
 
@@ -167,18 +187,23 @@ if ! app_pid=$(aerospace echo --window-id "$window_id" -- '%{app-pid}'); then
     exit 0
 fi
 [[ $app_pid =~ ^[1-9][0-9]*$ ]] || exit 0
-is_first_app_process_window "$window_id" "$app_pid" || exit 0
+if ! is_first_app_process_window "$window_id" "$app_pid"; then
+    workspace_memory remember "$window_id" || true
+    exit 0
+fi
 
 if ! app_name=$(aerospace echo --window-id "$window_id" -- '%{app-name}'); then
     exit 0
 fi
 
 if ! workspace=$(workspace_for_app "$app_name" "$app_bundle_id"); then
+    workspace_memory remember "$window_id" || true
     exit 0
 fi
 
 # Moving silently keeps a concurrently appearing authorization dialog focused.
 aerospace move-node-to-workspace --window-id "$window_id" -- "$workspace"
+workspace_memory remember "$window_id" || true
 if [[ $app_bundle_id == com.vphone.cli ]]; then
     resize_vphone_windows --workspace "$workspace"
 else
