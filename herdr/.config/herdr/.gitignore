@@ -2,5 +2,7 @@
 .plugins.lock
 *.log
 *.sock
+*.sock.agent
 release-notes.json
 session.json
+session-snapshots/
