@@ -450,6 +450,7 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-pi-') as directory:
             raise AssertionError('Unpinned Pi source accepted')
 if shutil.which('node'):
     run('node', '--check', str(ROOT / 'scripts/install-pi-packages.mjs'))
+    run('node', '--check', str(ROOT / 'scripts/check-pi-image-paste.mjs'))
 print('PASS: Pi pins, preview, compatible launcher, repeat run, failed-install restoration')
 
 if shutil.which('zsh'):

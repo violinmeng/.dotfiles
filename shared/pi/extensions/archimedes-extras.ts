@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, MessageRenderer } from "@earendil-works/pi-coding-agent";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -19,6 +19,17 @@ const DEFAULT_DIFF_CONFIG: DiffConfig = {
 	diffSplitMinCodeWidth: 60,
 };
 
+// The pinned preview extracts theme.fg, then calls it during a later render.
+// Theme methods use instance state in Pi 1.x, so preserve their receiver here.
+export function bindThemeMethods<T extends object>(theme: T): T {
+	return new Proxy(theme, {
+		get(target, property, receiver) {
+			const value = Reflect.get(target, property, receiver);
+			return typeof value === "function" ? value.bind(target) : value;
+		},
+	});
+}
+
 export default function archimedesExtras(pi: ExtensionAPI): void {
 	let currentContext: ExtensionContext | undefined;
 	let shutdownImagePaste: (() => void) | undefined;
@@ -37,10 +48,16 @@ export default function archimedesExtras(pi: ExtensionAPI): void {
 		// while retaining Archimedes previews on Ctrl+V and Ctrl+Alt+V.
 		const imagePasteApi = new Proxy(pi, {
 			get(target, property, receiver) {
+				if (property === "registerMessageRenderer") {
+					return <T>(customType: string, renderer: MessageRenderer<T>): void => {
+						pi.registerMessageRenderer<T>(customType, (message, options, theme) =>
+							renderer(message, options, bindThemeMethods(theme)));
+					};
+				}
 				if (property === "registerShortcut") {
-					return (key: string, options: unknown): void => {
+					return (key: Parameters<ExtensionAPI["registerShortcut"]>[0], options: Parameters<ExtensionAPI["registerShortcut"]>[1]): void => {
 						if (key !== "alt+v") {
-							pi.registerShortcut(key as Parameters<ExtensionAPI["registerShortcut"]>[0], options as Parameters<ExtensionAPI["registerShortcut"]>[1]);
+							pi.registerShortcut(key, options);
 						}
 					};
 				}
