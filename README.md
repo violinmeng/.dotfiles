@@ -6,7 +6,7 @@ backups, dependencies, and plugin installation on both platforms.
 
 ```text
 shared/          Cross-platform shell, editors, and agents
-linux/           Linux runtime declaration
+linux/           Linux runtime declaration and optional Hyprland shortcuts
 macos/           Homebrew, runtimes, terminals, and AeroSpace
 scripts/         Validation and migration tools
 docs/            Setup guides
@@ -51,6 +51,8 @@ The default Linux selection is `agents,zsh,git,fzf,tmux,nvim,kvim,yazi,mise`.
 It leaves the Omarchy desktop and terminal settings unchanged. See the
 [Omarchy setup guide](docs/omarchy.md).
 
+The optional [Omarchy shortcut configuration](docs/omarchy.md#screenshot-and-command-key-shortcuts)
+is saved under `linux/hypr/`. It is excluded from the installer.
 [WeChat for Linux](docs/omarchy.md#optional-wechat-desktop-app) is installed
 separately; the guide records the official ARM64 AppImage setup.
 

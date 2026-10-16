@@ -167,6 +167,40 @@ Keep the AppImage, extracted icons, login/session data (`~/.xwechat/`), and chat
 files (`~/Documents/xwechat_files/`) outside this repository. Do not copy them
 into `linux/` or another user's home.
 
+## Screenshot and Command-key shortcuts
+
+`linux/hypr/` preserves the working desktop shortcuts. These files are
+excluded from `install.py`, including explicit package selection. Restore them
+separately if you want this desktop customization. The saved `bindings.lua`
+replaces your personal binding overrides, so merge it instead if you have others.
+
+| Shortcut | Action |
+| --- | --- |
+| Command/Super + Shift + A | Select a screenshot region and open Satty; replaces the ChatGPT web app binding |
+| Command/Super + C | Copy using Omarchy's existing universal copy binding |
+| Command/Super + S | Save in Satty; toggle the scratchpad elsewhere |
+| Command/Super + V | Paste text or images; terminals receive Shift+Insert for text and Ctrl+V for images |
+
+The paste helper checks clipboard MIME types in a separate process so it does
+not block Hyprland's Wayland event loop. Pi's tracked `keybindings.json` accepts
+both Ctrl+V and Alt+V for image paste. Restart Pi after changing that file.
+
+To restore the saved desktop files, run these commands from the repository in
+an Omarchy desktop session:
+
+```sh
+omarchy pkg add satty grim slurp wl-clipboard imagemagick
+cp -a ~/.config/hypr ~/.config/hypr.backup-$(date +%Y%m%dT%H%M%S)
+cp linux/hypr/bindings.lua ~/.config/hypr/bindings.lua
+cp linux/hypr/command-paste.py ~/.config/hypr/command-paste.py
+hyprctl reload
+hyprctl configerrors
+```
+
+The screenshot binding uses Omarchy's `capture screenshot region save` command.
+It saves images under your configured Pictures directory and opens Satty with
+that file as both input and save destination.
+
 ## Check the port
 
 ```sh
