@@ -18,9 +18,31 @@ const logoRows = [
 	"████      ████",
 ];
 const sgr = /\x1b\[[0-9;]*m/g;
-const gradientBlock = /\x1b\[38;5;(?:199|171|135|99|75|51)m█\x1b\[0m/g;
+const gradientBlock = "\\x1b\\[38;5;(?:199|171|135|99|75|51)m█\\x1b\\[0m";
 
-/** Recolor only Powerline 0.12.3's logo; leave the box, text and widths intact. */
+// Pi's 4×4 square-pixel artwork, enlarged threefold. Half blocks retain
+// equal stroke and gap widths within Powerline's existing 14×6-cell slot.
+const pixels = [
+	[coral, coral, coral, ""],
+	[blue, "", coral, ""],
+	[blue, blue, "", yellow],
+	[blue, "", "", yellow],
+];
+const scaledPixels = pixels.flatMap(row =>
+	Array.from({ length: 3 }, () => row.flatMap(color => [color, color, color])));
+const welcomeLogo = Array.from({ length: 6 }, (_, row) => {
+	const top = scaledPixels[row * 2]!;
+	const bottom = scaledPixels[row * 2 + 1]!;
+	return " " + top.map((upper, column) => {
+		const lower = bottom[column]!;
+		if (upper === lower) return upper ? upper + "█" + reset : " ";
+		if (!lower) return upper + "▀" + reset;
+		if (!upper) return lower + "▄" + reset;
+		return upper + lower.replace("[38;", "[48;") + "▀" + reset;
+	}).join("") + " ";
+});
+
+/** Match only Powerline 0.12.3's logo; preserve the box, text and widths. */
 export function colorizeWelcomeLogo(lines: string[]): string[] {
 	const plain = lines.map(line => line.replace(sgr, ""));
 	const start = plain.findIndex((line, index) => {
@@ -30,19 +52,13 @@ export function colorizeWelcomeLogo(lines: string[]): string[] {
 	});
 	if (start < 0) return lines;
 
+	const patterns = logoRows.map(row => new RegExp(
+		[...row].map(char => char === "█" ? gradientBlock : " ").join("")));
+	if (!patterns.every((pattern, row) => pattern.test(lines[start + row]!))) return lines;
 	return lines.map((line, index) => {
 		const row = index - start;
-		if (row < 0 || row >= logoRows.length) return line;
-		let block = 0;
-		const blockCount = logoRows[row]!.replaceAll(" ", "").length;
-		return line.replace(gradientBlock, original => {
-			if (block >= blockCount) return original;
-			const color = row === 0 ? coral
-				: row < 3 ? (block < 4 ? blue : coral)
-				: block < (row === 3 ? 8 : 4) ? blue : yellow;
-			block++;
-			return color + "█" + reset;
-		});
+		return row >= 0 && row < logoRows.length
+			? line.replace(patterns[row]!, () => welcomeLogo[row]!) : line;
 	});
 }
 
