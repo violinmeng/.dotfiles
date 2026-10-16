@@ -1,0 +1,38 @@
+# Credentials and machine-local authorization
+auth.json
+mcp-oauth/
+
+# Runtime/session state
+sessions/
+trust.json
+models-store.json
+mcp-cache.json
+mcp-npx-cache.json
+mcp-onboarding.json
+powerline-footer/
+vibes/
+
+# Package-manager output; settings.json is the reproducible package manifest
+npm/
+git/
+
+# Generated integrations and backups
+extensions/herdr-agent-state.ts
+*.bak
+*.bak.*
+*.backup
+
+# OS/editor noise
+.DS_Store
+
+# Private provider/search credentials and runtime search state
+web-search.json
+web-search-*.json
+
+# Extension runtime state
+pi-acp/
+pi-openai-fast-mode/
+extensions/pi-openai-fast-mode/
+
+# OS/editor noise
+.DS_Store

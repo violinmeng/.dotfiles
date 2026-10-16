@@ -2,6 +2,8 @@
 # General
 __pycache__/
 .DS_Store
+__pycache__/
+*.py[cod]
 *.profraw
 .AppleDouble
 .LSOverride
@@ -29,20 +31,20 @@ Temporary Items
 .apdisk
 
 # this project
-zsh/.zsh-custom/plugins
-vim/.vim/plugged
+shared/zsh/custom/plugins
+shared/vim/plugged
 
 # Emacs runtime state
-emacs/.emacs.d/auto-save-list/
-emacs/.emacs.d/backups/
-emacs/.emacs.d/eln-cache/
-emacs/.emacs.d/elpa/
-emacs/.emacs.d/ido.last
-emacs/.emacs.d/network-security.data
-emacs/.emacs.d/transient/
-emacs/.emacs.d/url/
+shared/emacs/auto-save-list/
+shared/emacs/backups/
+shared/emacs/eln-cache/
+shared/emacs/elpa/
+shared/emacs/ido.last
+shared/emacs/network-security.data
+shared/emacs/transient/
+shared/emacs/url/
 
 # .gitignore in your dotfiles repo
 
-zsh/.zshrc.local.sh
+shared/zsh/zshrc.local.sh
 *.local

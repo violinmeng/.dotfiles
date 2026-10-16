@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT_DIR = ROOT / "aerospace/.config/aerospace"
+SCRIPT_DIR = ROOT / "macos/aerospace"
 spec = importlib.util.spec_from_file_location("memory", SCRIPT_DIR / "workspace-memory.py")
 memory = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(memory)

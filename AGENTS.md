@@ -1,33 +1,28 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+This repository supports macOS and Omarchy through one Python 3.11+ installer,
+`install.py`. GNU Stow is no longer a dependency. Sources live in `shared/`,
+`linux/`, and `macos/`; explicit mappings in `install.py` define home destinations.
 
-This is a **macOS dotfiles** repository managed with GNU Stow. There is no
-compiled application, no automated test suite, and no package manager manifest.
-The two runnable artifacts are the `install.sh` bootstrap and the
-`.secret-audit.py` git secret scanner.
+## Installer rules
 
-Cloud Agent VMs run **Linux**, so keep the following caveats in mind:
+- Preview is the default. Mutations require `--apply`.
+- Keep macOS and Omarchy system dependencies separate. Linux deployment excludes
+  desktop and terminal settings, SASE, and ActionBridge.
+- Preserve existing files with backups. Expand only directory links owned by
+  this repository, with rollback; refuse unrelated directory symlinks.
+- Deploy only versioned or nonignored sources. Never copy ignored runtime data,
+  plugin checkouts, or private configuration into another home.
+- Preserve plugin pins and existing local plugin work.
+- Login-shell changes and GitHub authentication require their explicit flags.
+- Keep one public installer. Update callers and docs when changing its interface.
 
-- `install.sh` intentionally refuses to run on anything other than macOS: its
-  `validate_environment` guard exits with `This installer currently supports
-  macOS only.`. This also applies to `./install.sh --dry-run`, since the guard
-  runs before any dry-run logic. Only `./install.sh --help` (and argument
-  parsing) works on Linux. This is expected behavior, not a bug — do not "fix"
-  it to make it run on Linux.
-- The Homebrew Brewfile, `mise` runtimes, and full stow deployment target a real
-  macOS `$HOME` and cannot be exercised end to end here. To validate a stow
-  package structure on Linux, use a throwaway target, e.g.
-  `stow --simulate --verbose=2 --dir /workspace --target "$(mktemp -d)" git tmux`.
+## Validation
 
-### Linting
-
-- Shell (`install.sh`): `bash -n install.sh` for syntax, then
-  `shellcheck install.sh`. The current script emits only info/warning findings
-  (`SC2016` single-quote literals used deliberately for profile-line comparison,
-  and one `SC2155`); these are pre-existing and not errors.
-- Python (`.secret-audit.py`): `python3 -m py_compile .secret-audit.py`. The
-  script is dependency-free and targets Python 3 (system `python3` is fine).
+Run `python3 scripts/check-install.py` and `git diff --check`.
+The tests use disposable targets and mocked package-manager calls. Previewing
+macOS on Linux does not validate real Homebrew installs or Mac application
+startup. Exercise the real selected Neovim profile when changing its setup.
 
 ### Running the secret audit (the runnable app on Linux)
 

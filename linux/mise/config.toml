@@ -1,0 +1,12 @@
+[tools]
+bun = "latest"
+codex = "latest"
+gh = "latest"
+java = "jetbrains-17"
+lua-language-server = "3.19.1"
+node = "24"
+"npm:pyright" = "latest"
+ruby = "3.3.5"
+rust = "stable"
+stylua = "2.5.2"
+zig = "latest"

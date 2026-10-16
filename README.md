@@ -1,143 +1,190 @@
-# macOS Dotfiles
+# Dotfiles for macOS and Omarchy
 
-Personal macOS development environment managed with [GNU Stow](https://www.gnu.org/software/stow/). The repository contains configuration for shells, terminals, editors, window management, command-line tools, and AI coding agents.
+Personal shell, terminal, editor, and coding-agent configuration. Sources are
+grouped by platform and application. One Python installer owns file links,
+backups, dependencies, and plugin installation on both platforms.
 
-## Repository layout
+```text
+shared/          Cross-platform shell, editors, and agents
+linux/           Linux runtime declaration
+macos/           Homebrew, runtimes, terminals, and AeroSpace
+scripts/         Validation and migration tools
+docs/            Setup guides
+install.py       Public installer and source-to-home mappings
+```
 
-Each top-level directory is a Stow package whose contents mirror paths under `$HOME`.
+Source paths do not mirror your home directory. For example,
+`shared/nvim/init.lua` links to `~/.config/nvim/init.lua`, and
+`shared/zsh/zshrc` links to `~/.zshrc`.
 
-| Package | Configuration |
-| --- | --- |
-| `agents` | Shared global agent skills and installation metadata under `~/.agents` |
-| `aerospace` | AeroSpace tiling window manager, including a Vim-style layout |
-| `alacritty` | Alacritty terminal emulator |
-| `apple-terminal-themes` | Color schemes for macOS Terminal |
-| `emacs` | Emacs configuration under `~/.config/emacs` |
-| `fzf` | Fuzzy-finder shell integration |
-| `ghostty` | Ghostty terminal emulator |
-| `git` | Global Git settings |
-| `kvim` | Kvim editor configuration |
-| `mise` | Global declarative runtime configuration |
-| `nvim` | Lua-based Neovim configuration |
-| `pi` | Pi coding-agent settings, extensions, models, and themes |
-| `tmux` | tmux and TPM integration |
-| `vim` | Vim configuration |
-| `yazi` | Yazi file manager, keymaps, and themes |
-| `zed` | Zed editor settings and Pi ACP integration |
-| `zsh` | Zsh, Oh My Zsh, environment, and custom shell settings |
+## Requirements
 
-The `docs` directory contains supporting documentation and diagrams rather than files intended to be stowed. The root `Brewfile` declares system packages and applications managed by Homebrew Bundle.
-
-## Prerequisites
-
-The configuration targets macOS. For the automated bootstrap, the only external prerequisite is a working Git installation, normally provided by the Xcode Command Line Tools:
+Install Python 3.11 or newer and Git before running the installer. A fresh Mac
+also needs the Xcode Command Line Tools for Git and native plugin builds:
 
 ```sh
 xcode-select --install
 ```
 
-`install.sh` provisions Homebrew and applies the root `Brewfile` when needed. To install the declared Homebrew dependencies manually:
+The installer does not need GNU Stow. If you previously installed that package,
+you can remove it independently; removing the program does not remove existing
+configuration links. Repository-owned directory links from earlier deployments
+are expanded safely during application. Unrelated directory links are refused.
+
+After pulling this layout change into an existing installation, preview the
+repair of old repository links with `python3 scripts/restructure.py`. Add
+`--apply` to repair them. This migration only updates existing links that point
+to moved sources; it does not install additional configuration or software.
+Preview and apply normal deployment through `install.py` afterward.
+
+## Preview the setup
 
 ```sh
-brew bundle install --no-upgrade --file Brewfile
-```
-
-Some packages require their corresponding applications to be installed separately.
-
-## Installation with Stow
-
-Clone the repository into your home directory:
-
-```sh
-git clone <repository-url> ~/.dotfiles
 cd ~/.dotfiles
+./install.py --dry-run
 ```
 
-Install individual packages from the repository root:
+Preview is the default, even without `--dry-run`. No software, links, login
+changes, or authentication flows run until you add `--apply`.
+
+The default Linux selection is `agents,zsh,git,fzf,tmux,nvim,kvim,yazi,mise`.
+It leaves the Omarchy desktop and terminal settings unchanged. See the
+[Omarchy setup guide](docs/omarchy.md).
+
+[WeChat for Linux](docs/omarchy.md#optional-wechat-desktop-app) is installed
+separately; the guide records the official ARM64 AppImage setup.
+
+The default Mac selection is
+`agents,zsh,alacritty,git,fzf,tmux,nvim,kvim,mise,herdr,pi,zed`.
+`aerospace`, `ghostty`, `emacs`, `vim`, and `yazi` can also be selected.
+To preview the Mac branch from Linux:
 
 ```sh
-stow zsh
-stow git
-stow tmux
-stow nvim
-stow emacs
-stow zed
-stow pi
-stow agents
+./install.py --platform macos --dry-run --install-packages
 ```
 
-To install several packages at once:
+Applying a different platform is refused. The macOS package path is covered by
+preview and command-routing tests; it has not been executed on a Mac here.
+
+## Install the selected configuration
 
 ```sh
-stow zsh git tmux nvim emacs yazi ghostty aerospace zed pi agents
+./install.py --apply --packages zsh,tmux,nvim,kvim --install-packages --install-plugins
 ```
 
-To remove a package's symlinks without deleting its source files:
+On macOS, `--install-packages` installs Homebrew if missing, applies
+`macos/Brewfile` without upgrading existing dependencies, and installs selected optional
+application dependencies. Homebrew may request system authentication. On
+Omarchy, it calls `omarchy pkg add` after checking the local package databases.
+Run the command in a terminal where you can enter a password if required.
+
+Use `--apply` without installation flags to deploy configuration only. Existing
+files are backed up under `~/.local/state/dotfiles/backups/<timestamp>/`.
+Correct links are left alone on repeat runs. A failure while creating links
+restores the files and directory links changed by that invocation. Software
+installation is separate from that file rollback.
+
+For a normal file restore, remove its new symlink and move the corresponding
+backup to its original path. Expanded repository directory links are recorded
+in `directory-links.json`, with the original link stored in `.directory-links/`.
+Expansion keeps unrelated contents reachable through links to their old source.
+
+## Choose software installation steps
+
+| Option | Operation |
+| --- | --- |
+| `--install-packages` | Homebrew Bundle or Omarchy system dependencies |
+| `--install-plugins` | Configured Zsh, tmux, selected Neovim, and Pi plugins |
+| `--install-runtimes` | Trust and install the selected mise declaration |
+| `--install-haskell` | GHCup, GHC, Cabal, and HLS |
+| `--github-login` | Start the GitHub CLI web login flow |
+| `--set-default-shell` | Use `chsh` to make Zsh the login shell |
+
+Every option still requires `--apply` to make changes. Plugin installation
+requires Git. Kvim's Swift parser also needs Node/npm, normally installed by
+mise. The plugin step pins the compatible Tree-sitter CLI under `~/.local`.
+Install runtimes before Kvim plugins on a fresh machine:
 
 ```sh
-stow --delete nvim
+# The mise package selects the current platform's declaration.
+./install.py --apply --packages zsh,mise --install-runtimes
+./install.py --apply --packages zsh,tmux,nvim,kvim --install-packages --install-plugins
 ```
 
-If a real file already exists where Stow needs to create a symlink, move or back it up before stowing the package.
+On Mac, `--install-packages` provisions mise through Homebrew. On Omarchy, install
+mise for the machine's architecture first. The `mise` package selects
+`linux/mise/config.toml` or `macos/mise/config.toml` for the current platform.
 
-## Bootstrap script
+Configuration-only deployment does not install application executables.
+For a selected `pi` package, `--install-packages` installs Pi 1.3.0 with npm and
+`--install-plugins` installs and verifies its pinned extensions. Herdr's
+application installation remains separate.
+Downloads use the configured upstreams for plugins and the official installers
+for Homebrew and GHCup. Existing plugin checkouts are reused without resetting
+local work. Version or upstream conflicts stop installation.
 
-`install.sh` is an idempotent Bash bootstrap script for macOS. By default, it installs the core command-line environment, deploys the primary Stow packages, and configures language toolchains. After installing the Brewfile, it starts the GitHub CLI web login flow when `gh` is not already authenticated with `github.com`.
-
-Preview the complete setup without changing the system:
+## Install Pi with your configuration
 
 ```sh
-./install.sh --dry-run
+./install.py --apply --packages pi --install-packages --install-plugins
 ```
 
-Run the default installation:
+Node/npm must be available, normally through mise. Pi is installed under
+`~/.local`; its settings, themes, extensions, models, and MCP configuration are
+linked from this repository. Existing settings are backed up. Credentials and
+sessions remain local and are excluded from deployment.
+
+The `packages` array in `shared/pi/settings.json` is authoritative. Exact npm
+versions, Git commits, and resource filters are preserved. Installation uses
+Pi's package manager without rewriting those settings. Verification checks that
+all declared packages exist, the configured theme and extensions load, the next
+startup needs no downloads, and a real RPC session responds without sending a
+prompt or contacting a model provider.
+
+The npm launcher points to Pi's modular CLI. The bundled CLI cannot resolve an
+SDK import used by the pinned Vim integration. The existing MCP adapter owns
+`/mcp`, so the overlapping built-in MCP extension is disabled. Some pinned
+third-party packages still emit host dependency metadata warnings; those are
+upstream package declarations and are not patched locally.
+
+Start `pi` in your project and use `/login` to connect a provider. Authentication
+is not part of installation.
+
+## Configuration packages
+
+| Package | Configuration |
+| --- | --- |
+| `zsh`, `fzf` | Shell environment, custom theme, and fuzzy-finder helpers |
+| `git`, `tmux` | Git identity/settings and terminal multiplexer |
+| `nvim`, `kvim`, `vim`, `emacs` | Independent editor profiles |
+| `mise` | Platform-specific global runtime declaration |
+| `alacritty`, `ghostty`, `aerospace` | Optional macOS terminal and window-manager settings |
+| `yazi` | File manager, keymaps, and themes |
+| `zed`, `pi`, `herdr` | Editor and coding-agent settings |
+| `agents` | Shared global agent skills and installation metadata under `~/.agents` |
+
+`nvim` selects `~/.config/nvim`. The `knvim` alias selects `~/.config/kvim`.
+They use separate configuration, plugins, and runtime data. `macos/terminal-themes`
+contains manually imported Mac Terminal themes and is not deployed by the installer.
+
+The installer selects only versioned or nonignored source files using Git.
+Ignored credentials, plugin checkouts, and generated runtime state are excluded.
+Keep private machine settings in local override files.
+
+## Validate changes
 
 ```sh
-./install.sh
+python3 scripts/check-install.py
 ```
 
-Install selected components or Stow packages:
-
-```sh
-./install.sh --packages zsh,tmux,nvim
-```
-
-Homebrew dependencies are treated as one atomic system layer. Selecting `brew` or any component backed by Homebrew applies the complete `Brewfile`, rather than installing only one formula from it.
-
-Deploy configuration without installing software:
-
-```sh
-./install.sh --stow-only --packages zsh,mise,tmux,zed,pi
-```
-
-Use `./install.sh --help` for the full component list and available options. Change system dependencies in `Brewfile` and runtime versions in the root `mise.toml`; the installer contains no duplicated package or runtime version list.
-
-### Tool-management layers
-
-The bootstrap deliberately assigns one responsibility to each manager:
-
-| Layer | Manager | Responsibilities |
-| --- | --- | --- |
-| macOS system | Homebrew Bundle | `mise`, GNU Stow, terminals, CLI tools, and runtime build dependencies declared in `Brewfile` |
-| Language runtimes | mise | Bun, Java, Node.js, Ruby, Rust, Tuist, and Zig declared in the global mise config |
-| Haskell ecosystem | GHCup | GHC, Cabal, and HLS as one compatible toolchain |
-| Configuration | GNU Stow | Shell, editor, terminal, agent, and application configuration |
-| Plugins and source checkouts | Git | Oh My Zsh, Zsh plugins, TPM, and `z` |
-
-Mise uses `~/.config/mise/config.toml` as its standard global declaration path. The repository keeps the canonical declaration in the root `mise.toml`; `mise/.config/mise/config.toml` is a relative symlink to that file, allowing Stow to expose the same declaration globally without duplication. The installer then runs `mise install`. On first migration, an existing regular config file is atomically moved to a timestamped backup before Stow takes ownership; if Stow fails, the original config is restored automatically. The tracked config includes the previously configured Bun, Java, Node.js, Tuist, and Zig entries plus Ruby and Rust. Project-specific versions can still be declared in each project's `mise.toml` and override these global defaults.
-
-Existing NVM, rbenv, or rustup installations are not deleted automatically. After verifying that projects and editor integrations resolve the mise-managed runtimes, those legacy installations can be removed manually if they are no longer needed.
-
-The mise shims directory is added to shell startup so globally configured runtimes also work in scripts and non-interactive shells. Interactive Zsh additionally uses `mise activate zsh` for automatic project switching. GHCup's bin directory is prepended after mise activation so the Haskell toolchain remains owned by GHCup.
-
-If the stowed Zsh configuration is unavailable, the installer adds minimal runtime setup to `~/.zshenv` and `~/.zshrc`. A later Zsh Stow installation automatically removes those files only when they still contain installer-generated lines exclusively; user-extended files are left untouched so Stow can report the conflict safely. Pass `--no-profile-update` to print required setup without modifying profile files.
-
-> [!WARNING]
-> The bootstrap downloads and executes official Homebrew and GHCup installers and clones third-party Git repositories. Runtime downloads are delegated to mise. Review the script and upstream sources before running it in a sensitive environment.
+This runs disposable deployments, backup and rollback checks, repeat runs,
+repository-directory-link migration, ignored-file exclusion, platform previews,
+and mocked package-manager routing. Neovim plugin installation also runs a real
+headless startup check, including native FZF and Kvim parser loading.
 
 ## Neovim
 
-The Neovim configuration lives under `nvim/.config/nvim` and is organized into:
+The Neovim configuration lives under `shared/nvim` and is organized into:
 
 - `lua/config` — options, keymaps, and autocommands
 - `lua/core` — package management, LSP setup, and shared infrastructure
@@ -182,11 +229,18 @@ python3 -m unittest discover -s tests -p 'test_aerospace*.py'
 ## Shared agent skills
 
 The `agents` package keeps global skills and `.skill-lock.json` under
-`agents/.agents`. Stow links this directory to `~/.agents`, so skill additions
-and updates through that path are visible in the dotfiles working tree. The
-package is included in both default bootstrap and default `--stow-only` installs.
-Existing `~/.agents` directories must be backed up and their desired contents
-merged into the package before stowing; do not overwrite them blindly.
+`shared/agents`. It is included in both platform defaults. Preview or apply it
+separately with the public installer:
+
+```sh
+./install.py --dry-run --packages agents
+./install.py --apply --packages agents
+```
+
+The installer links individual files into `~/.agents`, backs up conflicting
+files, and preserves unrelated local skills. Updates to linked skill files are
+visible in the dotfiles working tree; review newly added files before tracking
+them. GNU Stow is not required.
 
 Pi discovers `~/.agents/skills` automatically. Other compatible agents can use
 this shared location or their existing links to it. The included
@@ -209,7 +263,7 @@ The `pi` package includes coding-agent configuration under `~/.pi/agent`, includ
 
 The `zed` package configures Zed to work with Pi through the Agent Client Protocol (ACP). See `docs/pi-zed-acp-setup.svg` for an overview of the setup.
 
-Generated Pi runtime state stays inside the Stow package but is excluded from Git where appropriate.
+Generated Pi runtime state stays inside the configuration package but is excluded from Git where appropriate.
 
 ## Additional macOS setup
 

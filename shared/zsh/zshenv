@@ -1,0 +1,21 @@
+# Shared shell environment. Keep Mac application paths off Linux.
+export EDITOR=nvim
+if [[ "$OSTYPE" == darwin* ]]; then
+  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
+  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles"
+  export HOMEBREW_API_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles/api"
+  export PATH="/opt/homebrew/bin:$PATH:$HOME/Library/Python/3.9/bin"
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+  export MY_PING_PATH=/Applications/SASE.app/Contents/Services
+  export ANDROID_STUDIO_BIN="/Applications/Android Studio.app/Contents/MacOS"
+  export PATH="$MY_PING_PATH:$ANDROID_STUDIO_BIN:$PATH"
+else
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+fi
+# Zsh's unique path array prevents duplication when shells are nested.
+typeset -U path
+path=("$HOME/.ghcup/bin" "$HOME/.local/share/mise/shims"
+      "$HOME/.cargo/bin" "$HOME/.bun/bin" "$HOME/.local/bin"
+      /usr/local/bin "$HOME/development/flutter/bin" $path
+      "$ANDROID_HOME/tools" "$ANDROID_HOME/tools/bin" "$ANDROID_HOME/platform-tools")
+export PATH
