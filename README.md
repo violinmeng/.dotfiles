@@ -184,13 +184,21 @@ codemode when a server connects. Choose `deferred` or `direct` exposure with
 `pi mcp add --exposure` or `/mcp` if desired.
 
 Active server definitions live in the **machine-local** `~/.pi/agent/mcp.json`.
-The installer deploys only `mcp.example.json` and never replaces the active file.
-For example, with Figma's desktop MCP server running:
+The installer never replaces the active file. Figma's desktop MCP setup is
+**macOS-only**: its example lives in `macos/pi/mcp.example.json` and is deployed
+to `~/.pi/agent/mcp.example.json` only on macOS, never on Omarchy/Linux. The
+example does not enable a server automatically.
+
+On macOS, with Figma's desktop MCP server running:
 
 ```sh
 pi mcp add figma --url http://127.0.0.1:3845/mcp --exposure codemode
 pi mcp list
 ```
+
+Do not enable this desktop Figma server on Linux. If an older setup left a
+`figma` entry in the machine-local `mcp.json`, set its `enabled` field to `false`
+(or disable it through `/mcp`) and run `/reload`. Leave other servers unchanged.
 
 Use `/mcp` to inspect or reconnect servers, or sign in with `pi mcp login <name>`.
 Native OAuth tokens live in `~/.pi/agent/mcp-auth.json`; keep that file and MCP
@@ -288,8 +296,18 @@ python3 -m unittest discover -s tests -p 'test_aerospace*.py'
 ## Shared agent skills
 
 The `agents` package keeps global skills and `.skill-lock.json` under
-`shared/agents`. It is included in both platform defaults. Preview or apply it
-separately with the public installer:
+`shared/agents`, not a repository-root `.agents` directory:
+
+```text
+shared/agents/
+├── .skill-lock.json       → ~/.agents/.skill-lock.json
+└── skills/<name>/        → ~/.agents/skills/<name>/ (individual file links)
+    ├── SKILL.md
+    └── supporting files
+```
+
+It is included in both platform defaults. Preview or apply it separately with
+the public installer:
 
 ```sh
 ./install.py --dry-run --packages agents
@@ -304,8 +322,9 @@ them. GNU Stow is not required.
 Pi discovers `~/.agents/skills` automatically. Other compatible agents can use
 this shared location or their existing links to it. The included
 [`show-me`](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me)
-skill explains code visually. In Pi, invoke it with `/skill:show-me` after
-restarting Pi to discover newly installed skills.
+skill explains code visually. In Pi, run `/reload` or start a new session to
+discover newly installed skills, then invoke it with `/skill:show-me`. Applying
+the installer again should report zero changed links.
 
 Keep credentials and local runtime state out of the package, and review
 third-party skills before use.
