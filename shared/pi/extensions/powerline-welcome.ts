@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { Component } from "@earendil-works/pi-tui";
+import { selectLatestChatGPT } from "./latest-chatgpt.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -103,7 +104,10 @@ export default async function powerlineWelcome(pi: ExtensionAPI): Promise<void> 
 			if (property === "on") {
 				return (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => {
 					if (event === "session_start") {
-						return pi.on("session_start", (event, ctx) => handler(event, welcomeContext(ctx)) as void | Promise<void>);
+						return pi.on("session_start", async (event, ctx) => {
+						await selectLatestChatGPT(pi, ctx);
+						await handler(event, welcomeContext(ctx));
+					});
 					}
 					return Reflect.get(target, property, receiver).call(target, event, handler);
 				};
