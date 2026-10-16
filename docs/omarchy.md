@@ -83,9 +83,11 @@ and Blink declarations inside Lua comments are not enabled by this command.
 Use `--packages kvim --install-plugins` for the separate Kvim profile. That
 profile has its own plugin set. The `knvim` shell alias selects this profile,
 so it needs `~/.config/kvim` as well as its own installed plugins. Kvim is included
-in the default configuration selection. Its Swift parser requires Tree-sitter CLI 0.25.10 and Node. The plugin step
-installs that pinned CLI under `~/.local` via npm. Install Node with mise first.
-The pinned Treesitter plugin uses a flag removed by CLI 0.26.
+in the default configuration selection. It requires Neovim 0.12+ and the
+supported `main` Treesitter and text-object APIs. `--install-packages` installs
+Tree-sitter CLI 0.26.1+ through Omarchy; parser generation also needs Node.
+If an older npm CLI shadows the distro binary, remove it with
+`npm uninstall --global --prefix ~/.local tree-sitter-cli`.
 During installer runs, parser builds are synchronous and verified before success. Neither command invokes `PackUpdate` or
 installs language runtimes. You can include `zsh,tmux,nvim` in a single selection
 to reproduce the installed shell, multiplexer, and editor plugins.

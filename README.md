@@ -103,8 +103,9 @@ Expansion keeps unrelated contents reachable through links to their old source.
 | `--set-default-shell` | Use `chsh` to make Zsh the login shell |
 
 Every option still requires `--apply` to make changes. Plugin installation
-requires Git. Kvim's Swift parser also needs Node/npm, normally installed by
-mise. The plugin step pins the compatible Tree-sitter CLI under `~/.local`.
+requires Git. Kvim requires Neovim 0.12+, Tree-sitter CLI 0.26.1+, and Node for parser
+generation. `--install-packages` installs the CLI through Homebrew or Omarchy.
+Remove an older npm CLI if it shadows the system binary.
 Install runtimes before Kvim plugins on a fresh machine:
 
 ```sh

@@ -21,7 +21,7 @@ PACKAGES = {
     'zsh': ('zsh',), 'git': ('git', 'git-lfs'),
     'fzf': ('fzf', 'fd', 'ripgrep', 'bat', 'jq', 'sqlite'),
     'tmux': ('tmux',), 'nvim': ('neovim', 'base-devel', 'unzip'),
-    'kvim': ('neovim', 'base-devel', 'unzip'), 'vim': ('vim',),
+    'kvim': ('neovim', 'base-devel', 'unzip', 'tree-sitter-cli', 'curl', 'tar'), 'vim': ('vim',),
     'emacs': ('emacs',), 'yazi': ('yazi', 'ffmpeg', '7zip', 'poppler',
                               'imagemagick', 'mpv', 'perl-image-exiftool', 'mediainfo'),
     'mise': (), 'zed': (), 'pi': (), 'herdr': (), 'agents': (),
@@ -230,20 +230,41 @@ def install_plugins(specs, target, apply):
                 checkout.rename(destination)
 
 
-def install_tree_sitter_cli():
-    # The locked Treesitter plugin uses --no-bindings, removed in CLI 0.26.
-    prefix = Path.home() / '.local'
-    binary = prefix / 'bin/tree-sitter'
-    if binary.exists():
-        version = subprocess.run([str(binary), '--version'], capture_output=True, text=True)
-        if version.returncode == 0 and version.stdout.split()[:2] == ['tree-sitter', '0.25.10']:
+def require_tree_sitter_cli():
+    binary = shutil.which('tree-sitter')
+    if binary:
+        result = subprocess.run([binary, '--version'], capture_output=True, text=True, check=True)
+        version = re.search(r'tree-sitter (\d+)\.(\d+)\.(\d+)', result.stdout)
+        if version and tuple(map(int, version.groups())) >= (0, 26, 1):
             return
-    if not shutil.which('npm') or not shutil.which('node'):
-        raise ValueError('Kvim needs Node/npm; install Node with mise first')
-    subprocess.run(['npm', 'install', '--global', '--prefix', str(prefix),
-                    '--ignore-scripts', 'tree-sitter-cli@0.25.10'], check=True)
-    package = prefix / 'lib/node_modules/tree-sitter-cli'
-    subprocess.run(['node', str(package / 'install.js')], cwd=package, check=True)
+    raise ValueError('Kvim requires tree-sitter-cli >=0.26.1 from Homebrew or Omarchy. '
+                     'Use --install-packages; remove any obsolete npm tree-sitter-cli shadowing it.')
+
+
+def sync_kvim_treesitter():
+    """Apply the two API migration pins before loading Kvim's configuration."""
+    lock = json.loads((ROOT / 'shared/kvim/nvim-pack-lock.json').read_text())['plugins']
+    legacy_pins = {
+        'nvim-treesitter': 'cf12346a3414fa1b06af75c79faebe7f76df080a',
+        'nvim-treesitter-textobjects': '5ca4aaa6efdcc59be46b95a3e876300cfead05ef',
+    }
+    data = Path(os.environ.get('XDG_DATA_HOME', str(Path.home() / '.local/share')))
+    for name in ('nvim-treesitter', 'nvim-treesitter-textobjects'):
+        path = data / 'kvim/site/pack/core/opt' / name
+        if not path.exists():
+            continue  # vim.pack installs missing plugins from the lockfile.
+        revision = lock[name]['rev']
+        head = subprocess.check_output(['git', '-C', str(path), 'rev-parse', 'HEAD'], text=True).strip()
+        if head == revision:
+            continue
+        status = subprocess.check_output(
+            ['git', '-C', str(path), 'status', '--porcelain', '--untracked-files=no'], text=True)
+        remote = subprocess.check_output(
+            ['git', '-C', str(path), 'remote', 'get-url', 'origin'], text=True).strip()
+        if status or remote != lock[name]['src'] or head != legacy_pins[name]:
+            raise ValueError(f'Preserve local plugin work; cannot migrate {path}')
+        subprocess.run(['git', '-C', str(path), 'fetch', 'origin', revision], check=True)
+        subprocess.run(['git', '-C', str(path), 'checkout', '--detach', revision], check=True)
 
 
 def install_editor_plugins(packages, apply):
@@ -253,7 +274,8 @@ def install_editor_plugins(packages, apply):
         print(f'Initialize and verify Neovim profile: {profile}')
         if apply:
             if profile == 'kvim':
-                install_tree_sitter_cli()
+                require_tree_sitter_cli()
+                sync_kvim_treesitter()
             for executable in ('nvim', 'make', 'cc'):
                 if not shutil.which(executable):
                     raise ValueError(f'Neovim plugin installation requires {executable}')

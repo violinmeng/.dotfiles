@@ -224,6 +224,41 @@ with patch.object(installer.shutil, 'which', return_value=None):
         raise AssertionError('Missing build tools were not reported')
 print('PASS: Neovim preview, selected profile, checked execution, missing build tools')
 
+for version, accepted in [('0.25.10', False), ('0.26.0', False), ('0.26.1', True), ('0.27.0', True)]:
+    with patch.object(installer.shutil, 'which', return_value='/usr/bin/tree-sitter'), \
+         patch.object(installer.subprocess, 'run', return_value=subprocess.CompletedProcess(
+             ['tree-sitter', '--version'], 0, stdout='tree-sitter ' + version)):
+        try:
+            installer.require_tree_sitter_cli()
+        except ValueError:
+            assert not accepted, version
+        else:
+            assert accepted, version
+print('PASS: supported Tree-sitter CLI versions accepted; obsolete CLI rejected')
+
+with tempfile.TemporaryDirectory(prefix='dotfiles-ts-local-') as directory:
+    base = Path(directory)
+    checkout = base / 'data/kvim/site/pack/core/opt/nvim-treesitter'
+    run('git', 'init', str(checkout))
+    (checkout / 'local.lua').write_text('return 1\n')
+    run('git', '-C', str(checkout), 'add', 'local.lua')
+    run('git', '-C', str(checkout), '-c', 'user.name=Test', '-c',
+        'user.email=test@example.invalid', 'commit', '-m', 'fixture')
+    run('git', '-C', str(checkout), 'remote', 'add', 'origin',
+        'https://github.com/nvim-treesitter/nvim-treesitter')
+    (checkout / 'local.lua').write_text('preserve local plugin edits\n')
+    head = run('git', '-C', str(checkout), 'rev-parse', 'HEAD').stdout.strip()
+    with patch.dict(os.environ, {'XDG_DATA_HOME': str(base / 'data')}):
+        try:
+            installer.sync_kvim_treesitter()
+        except ValueError as error:
+            assert 'Preserve local plugin work' in str(error)
+        else:
+            raise AssertionError('Treesitter migration discarded local work')
+    assert (checkout / 'local.lua').read_text() == 'preserve local plugin edits\n'
+    assert run('git', '-C', str(checkout), 'rev-parse', 'HEAD').stdout.strip() == head
+print('PASS: Treesitter API migration refuses modified plugin checkouts')
+
 with tempfile.TemporaryDirectory(prefix='dotfiles-platform-') as directory:
     command = [sys.executable, str(ROOT / 'install.py'), '--target', directory]
     result = run(*command, '--platform', 'macos', '--packages', 'zsh,mise', '--install-packages')
