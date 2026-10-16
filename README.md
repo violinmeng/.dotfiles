@@ -53,6 +53,8 @@ It leaves the Omarchy desktop and terminal settings unchanged. See the
 
 The optional [Omarchy shortcut configuration](docs/omarchy.md#screenshot-and-command-key-shortcuts)
 is saved under `linux/hypr/`. It is excluded from the installer.
+The optional [Foot/Zsh startup configuration](docs/omarchy.md#start-new-terminals-in-zsh)
+is saved under `linux/foot/` and is also restored manually.
 [WeChat for Linux](docs/omarchy.md#optional-wechat-desktop-app) is installed
 separately; the guide records the official ARM64 AppImage setup.
 
@@ -133,9 +135,10 @@ local work. Version or upstream conflicts stop installation.
 ```
 
 Node/npm must be available, normally through mise. Pi is installed under
-`~/.local`; its settings, themes, extensions, models, and MCP configuration are
-linked from this repository. Existing settings are backed up. Credentials and
-sessions remain local and are excluded from deployment.
+`~/.local`; its settings, themes, extensions, models, and MCP example are
+linked from this repository. Existing settings are backed up. Active MCP server
+configuration, credentials, and sessions remain local and are excluded from
+deployment.
 
 The `packages` array in `shared/pi/settings.json` is authoritative. Exact npm
 versions, Git commits, and resource filters are preserved. Installation uses
@@ -145,10 +148,10 @@ startup needs no downloads, and a real RPC session responds without sending a
 prompt or contacting a model provider.
 
 The npm launcher points to Pi's modular CLI. The bundled CLI cannot resolve an
-SDK import used by the pinned Vim integration. The existing MCP adapter owns
-`/mcp`, so the overlapping built-in MCP extension is disabled. Some pinned
-third-party packages still emit host dependency metadata warnings; those are
-upstream package declarations and are not patched locally.
+SDK import used by the pinned Vim integration. MCP uses Pi's built-in support,
+not `pi-mcp-adapter`. Some pinned third-party packages still emit host dependency
+metadata warnings; those are upstream package declarations and are not patched
+locally.
 
 New Pi sessions select the newest general-purpose OpenAI GPT release in Pi's
 available model catalog, including the `-sol` family, without a fixed model ID.
@@ -165,6 +168,40 @@ ordering, or add `--live` to verify a real reply using your existing login.
 
 Start `pi` in your project and use `/login` to connect a provider. Authentication
 is not part of installation.
+
+### Native MCP servers
+
+Pi 1.3.0 includes `/mcp`, `pi mcp`, and the `codemode` / `tool_search` tools.
+The built-in MCP, codemode, and tool-search extensions stay enabled; no separate
+MCP package is installed. Servers default to `codemode` exposure, which activates
+codemode when a server connects. Choose `deferred` or `direct` exposure with
+`pi mcp add --exposure` or `/mcp` if desired.
+
+Active server definitions live in the **machine-local** `~/.pi/agent/mcp.json`.
+The installer deploys only `mcp.example.json` and never replaces the active file.
+For example, with Figma's desktop MCP server running:
+
+```sh
+pi mcp add figma --url http://127.0.0.1:3845/mcp --exposure codemode
+pi mcp list
+```
+
+Use `/mcp` to inspect or reconnect servers, or sign in with `pi mcp login <name>`.
+Native OAuth tokens live in `~/.pi/agent/mcp-auth.json`; keep that file and MCP
+logs out of Git. Older adapter credentials in `mcp-oauth/` are not automatically
+converted; OAuth servers may need a new sign-in. Do not delete the old directory
+until the replacement connection works.
+
+When migrating from `pi-mcp-adapter`, copy the effective imported server
+definitions into the local native file before removing the adapter. If the old
+`mcp.json` is a dotfiles symlink, back it up and replace the link with a regular
+file first; never write private imported values through that link. Native MCP
+does **not** read the adapter's `imports` list or automatically follow later
+Cursor/Codex configuration changes. Preserve private `env` and `headers` locally,
+convert `disabled: true` to `enabled: false`, and convert `requestTimeoutMs` to
+`timeout` in seconds. Remove transportless disabled placeholders rather than
+enabling them. Remove `-builtin:mcp` and adapter-specific tool-display overrides.
+Restart Pi after migration; subsequent native config edits can use `/reload`.
 
 ## Configuration packages
 
@@ -272,7 +309,7 @@ third-party skills before use.
 The `pi` package includes coding-agent configuration under `~/.pi/agent`, including:
 
 - custom TypeScript extensions
-- model and MCP configuration
+- model configuration and a credential-free MCP example
 - keybindings
 - themes
 - tool-display and context-management settings

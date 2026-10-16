@@ -187,7 +187,7 @@ pi() {
     case "$arg" in
       -c|--continue|-r|--resume|--session|--session=*|--fork|--fork=*|--no-session|\
       -p|--print|--mode|--mode=*|--export|--list-models|-h|--help|-v|--version|\
-      install|remove|uninstall|update|list|config)
+      install|remove|uninstall|update|list|config|mcp|auth)
         command "${pi_command[@]}" "$@"
         return
         ;;

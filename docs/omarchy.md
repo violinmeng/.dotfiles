@@ -43,6 +43,32 @@ The custom `wangalin` theme and Zsh plugins require Oh My Zsh and its plugins;
 tmux's Catppuccin theme requires TPM and the plugin checkout. Missing themes do
 not prevent shell or tmux startup.
 
+## Start new terminals in Zsh
+
+Select Zsh as the account login shell explicitly:
+
+```sh
+./install.py --apply --packages zsh --set-default-shell
+```
+
+Log out and back in to refresh the desktop session's environment. Until then,
+Foot can inherit an old `SHELL=/bin/bash` even when the account's login shell is
+already Zsh. In `~/.config/foot/foot.ini`, set this in the existing `[main]`
+section to make new Foot windows start Zsh immediately:
+
+```ini
+[main]
+shell=/usr/bin/zsh
+```
+
+The working Foot configuration is saved in `linux/foot/foot.ini` for optional
+manual restoration; it is deliberately excluded from `install.py`. Back up your
+live file before copying it, or merge only the `shell` line if you have other
+terminal preferences. Validate with `foot --check-config`, then open a **new**
+terminal. Existing terminals are not restarted. Inside it, `echo $ZSH_VERSION`
+should print a version. The shared `.zshenv` also exports Zsh's executable as
+`SHELL` for child tools and terminals, correcting stale inherited values.
+
 ## Install the configured shell and tmux plugins
 
 ```sh

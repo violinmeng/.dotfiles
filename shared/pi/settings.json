@@ -47,7 +47,6 @@
       "extensions": []
     },
     "npm:pi-web-access@0.18.0",
-    "npm:pi-mcp-adapter@2.29.0",
     {
       "source": "npm:@pi-archimedes/diff@1.8.3",
       "extensions": []
@@ -77,8 +76,5 @@
   "modelThinkingLevels": {
     "openai-codex/gpt-5.6-sol": "max"
   },
-  "extensions": [
-    "-builtin:mcp"
-  ],
   "deviceId": "5e2fc23a-b99c-465b-95de-d0cb2fb2f5fd"
 }

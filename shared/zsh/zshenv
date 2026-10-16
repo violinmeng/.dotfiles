@@ -1,4 +1,9 @@
 # Shared shell environment. Keep Mac application paths off Linux.
+# Desktop sessions may retain SHELL=/bin/bash after changing the login shell.
+# Let child terminals and tools launched from Zsh inherit the correct shell.
+if (( $+commands[zsh] )); then
+  export SHELL="${commands[zsh]}"
+fi
 export EDITOR=nvim
 if [[ "$OSTYPE" == darwin* ]]; then
   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"

@@ -75,7 +75,13 @@ await new Promise((resolve, reject) => {
       if (response.type === "extension_error") finish(new Error(JSON.stringify(response)));
       if (response.type === "response" && response.id === "dotfiles-startup-check") {
         if (!response.success) finish(new Error("Pi rejected the startup check"));
-        else setTimeout(() => finish(/Failed to load extension|Error in extension/i.test(errors)
+        else child.stdin.write(JSON.stringify({ id: "dotfiles-native-mcp-check", type: "get_commands" }) + "\n");
+      }
+      if (response.type === "response" && response.id === "dotfiles-native-mcp-check") {
+        const mcpCommands = response.data?.commands?.filter(command => command.name === "mcp") ?? [];
+        if (!response.success || mcpCommands.length !== 1 || mcpCommands[0].sourceInfo?.path !== "builtin:mcp") {
+          finish(new Error("Pi's /mcp command must be provided by builtin:mcp, not an adapter"));
+        } else setTimeout(() => finish(/Failed to load extension|Error in extension/i.test(errors)
           ? new Error(errors) : undefined), 750);
       }
     }
@@ -83,4 +89,4 @@ await new Promise((resolve, reject) => {
   child.stdin.write(JSON.stringify({ id: "dotfiles-startup-check", type: "get_state" }) + "\n");
 });
 assert.equal(readFileSync(settingsFile, "utf8"), original, "Package setup changed the configuration");
-console.log(`Verified ${settings.packages.length} configured packages, ${extensions.extensions.length} extensions; theme=${settings.theme}; RPC startup OK; startup-installs=0`);
+console.log(`Verified ${settings.packages.length} configured packages, ${extensions.extensions.length} extensions; theme=${settings.theme}; RPC startup OK; native MCP OK; startup-installs=0`);

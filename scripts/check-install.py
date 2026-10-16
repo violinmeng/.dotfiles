@@ -96,10 +96,16 @@ assert mac_files[Path('.zshrc')] == linux_files[Path('.zshrc')]
 assert 'agents' in installer.LINUX_DEFAULT and 'agents' in installer.MAC_DEFAULT
 assert mac_files[Path('.agents/.skill-lock.json')] == linux_files[Path('.agents/.skill-lock.json')]
 assert Path('.pi/agent/settings.json') in linux_files
-assert not any(path.parts[:2] == ('.config', 'hypr') for path in linux_files)
+assert Path('.pi/agent/mcp.example.json') in linux_files
+assert Path('.pi/agent/mcp.json') not in linux_files
+assert Path('.pi/agent/mcp-auth.json') not in linux_files
+assert not any(path.parts[:2] in (('.config', 'hypr'), ('.config', 'foot')) for path in linux_files)
+assert 'shell=/usr/bin/zsh' in (ROOT / 'linux/foot/foot.ini').read_text().splitlines()
 assert not any(path.name == '.gitignore' for path in linux_files)
 print('PASS: explicit destinations, platform isolation, shared sources, optional desktop exclusion')
-for private in ('shared/pi/auth.json', 'shared/pi/npm/package.json',
+for private in ('shared/pi/auth.json', 'shared/pi/mcp.json',
+                'shared/pi/mcp-auth.json', 'shared/pi/mcp.log', 'shared/pi/mcp.log.1',
+                'shared/pi/npm/package.json',
                 'shared/pi/git/private/file', 'shared/pi/sessions/session.jsonl',
                 'shared/pi/models-store.json', 'shared/pi/web-search.json',
                 'shared/zsh/custom/plugins/local-work/file', 'shared/vim/plugged/plugin/file',
@@ -370,7 +376,32 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-order-') as directory:
 print('PASS: runtime installation precedes dependent editor plugin installation')
 
 sources = installer.configured_pi_sources()
-assert len(sources) == 12 and all(source.startswith(('npm:', 'git:')) for source in sources)
+assert len(sources) == 11 and all(source.startswith(('npm:', 'git:')) for source in sources)
+assert not any('pi-mcp-adapter' in source for source in sources)
+pi_settings = json.loads((ROOT / 'shared/pi/settings.json').read_text())
+assert not set(pi_settings.get('extensions', [])) & {
+    '-builtin:mcp', '-builtin:codemode', '-builtin:tool-search'}
+assert not {'mcp', 'mcpScript'} & json.loads(
+    (ROOT / 'shared/pi/extensions/pi-tool-display/config.json').read_text())['customToolOverrides'].keys()
+mcp_example = json.loads((ROOT / 'shared/pi/mcp.example.json').read_text())
+assert set(mcp_example) == {'mcpServers'}
+assert mcp_example['mcpServers']['figma']['exposure'] == 'codemode'
+with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-local-') as directory:
+    target = Path(directory)
+    private_config = target / '.pi/agent/mcp.json'
+    private_config.parent.mkdir(parents=True)
+    private_config.write_text('{"mcpServers":{"personal":{"url":"http://localhost:1234/mcp"}}}\n')
+    original_mcp = private_config.read_bytes()
+    private_auth = private_config.with_name('mcp-auth.json')
+    private_auth.write_text('{"fixture":"preserve private credentials"}\n')
+    original_auth = private_auth.read_bytes()
+    for _ in range(2):
+        run(sys.executable, str(ROOT / 'install.py'), '--apply', '--packages', 'pi',
+            '--target', directory)
+        assert private_config.read_bytes() == original_mcp and not private_config.is_symlink()
+        assert private_auth.read_bytes() == original_auth and not private_auth.is_symlink()
+    assert private_config.with_name('mcp.example.json').is_symlink()
+print('PASS: native MCP selection, private config/auth exclusion, repeat deployment preserves local servers')
 with patch.object(installer, 'command') as execute:
     installer.install_pi_plugins(['pi'], False)
     execute.assert_not_called()
@@ -425,16 +456,28 @@ if shutil.which('zsh'):
         target = Path(directory)
         shutil.copy(ROOT / 'shared/zsh/zshenv', target / '.zshenv')
         shutil.copy(ROOT / 'shared/zsh/zshrc', target / '.zshrc')
-        result = run('zsh', '-i', '-c', 'print -r -- "$PNPM_HOME"; print -r -- "$ANDROID_HOME"',
-                     env={**os.environ, 'HOME': directory, 'ZDOTDIR': directory,
-                          'ZSH': directory + '/missing-omz', 'TERM': 'xterm-256color',
-                          'XDG_DATA_HOME': directory + '/.local/share',
-                          'XDG_CONFIG_HOME': directory + '/.config',
-                          'ANDROID_HOME': directory + '/Android/Sdk', 'MISE_QUIET': '1'})
+        shell_env = {**os.environ, 'HOME': directory, 'ZDOTDIR': directory,
+                     'SHELL': '/bin/bash', 'ZSH': directory + '/missing-omz',
+                     'TERM': 'xterm-256color', 'XDG_DATA_HOME': directory + '/.local/share',
+                     'XDG_CONFIG_HOME': directory + '/.config',
+                     'ANDROID_HOME': directory + '/Android/Sdk', 'MISE_QUIET': '1'}
+        result = run('zsh', '-i', '-c',
+                     'print -r -- "$PNPM_HOME"; print -r -- "$ANDROID_HOME"; print -r -- "SHELL=$SHELL"',
+                     env=shell_env)
         assert directory + '/.local/share/pnpm' in result.stdout
         assert directory + '/Android/Sdk' in result.stdout
+        assert 'SHELL=' + shutil.which('zsh') in result.stdout
         assert not result.stderr, result.stderr
-    print('PASS: Zsh syntax and isolated shell startup')
+        fake_pi = target / '.local/bin/pi'
+        fake_pi.parent.mkdir(parents=True)
+        fake_pi.write_text('#!/bin/sh\nprintf pi\nprintf " <%s>" "$@"\nprintf "\\n"\n')
+        fake_pi.chmod(0o755)
+        result = run('zsh', '-i', '-c',
+                     'pi mcp list; pi auth check --provider openai; pi --version; pi', env=shell_env)
+        assert result.stdout == ('pi <mcp> <list>\npi <auth> <check> <--provider> <openai>\n'
+                                 'pi <--version>\npi <-c>\n'), result.stdout
+        assert not result.stderr, result.stderr
+    print('PASS: Zsh syntax, stale SHELL correction, isolated startup, Pi MCP/auth command routing')
 else:
     print('SKIP: Zsh syntax/startup checks require installing zsh')
 print('Installer checks passed.')

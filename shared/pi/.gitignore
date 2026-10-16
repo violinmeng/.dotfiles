@@ -1,5 +1,7 @@
 # Credentials and machine-local authorization
 auth.json
+mcp.json
+mcp-auth.json
 mcp-oauth/
 
 # Runtime/session state
@@ -9,6 +11,8 @@ models-store.json
 mcp-cache.json
 mcp-npx-cache.json
 mcp-onboarding.json
+mcp.log
+mcp.log.*
 powerline-footer/
 vibes/
 
