@@ -168,7 +168,13 @@ pi() {
   local arg pi_bin modular_cli package_manifest package_version
   local -a pi_command
 
-  pi_bin="${commands[pi]:A}"
+  # Prefer the installer's compatible launcher over older Bun/global installs.
+  if [[ -x "$HOME/.local/bin/pi" ]]; then
+    pi_bin="${HOME}/.local/bin/pi"
+    pi_bin="${pi_bin:A}"
+  else
+    pi_bin="${commands[pi]:A}"
+  fi
   pi_command=("$pi_bin")
 
   # Pi 0.84.3's bundled CLI cannot resolve extension peer dependencies.

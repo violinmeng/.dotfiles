@@ -14,6 +14,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
+# macOS exposes /private/var through /var; compare canonical fixture paths.
+tempfile.tempdir = str(Path(tempfile.gettempdir()).resolve())
 
 
 def run(*args, ok=True, **kwargs):
@@ -54,21 +56,22 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-linux-') as directory:
     assert original.is_symlink()
     assert original.resolve() == ROOT / 'shared/tmux/tmux.conf'
     assert (target / '.zshrc').resolve() == ROOT / 'shared/zsh/zshrc'
-    assert (target / '.config/mise/config.toml').resolve() == ROOT / 'linux/mise/config.toml'
+    platform_directory = 'macos' if sys.platform == 'darwin' else 'linux'
+    assert (target / '.config/mise/config.toml').resolve() == ROOT / platform_directory / 'mise/config.toml'
     assert (target / '.agents/skills/show-me/SKILL.md').resolve() == ROOT / 'shared/agents/skills/show-me/SKILL.md'
     assert (target / '.agents/.skill-lock.json').resolve() == ROOT / 'shared/agents/.skill-lock.json'
     assert local_skill.read_text() == 'preserve local skill\n' and not local_skill.is_symlink()
     backups = list((target / '.local/state/dotfiles/backups').glob('*/.tmux.conf'))
     assert len(backups) == 1 and backups[0].read_text() == 'personal tmux settings\n'
     assert not (target / '.config/hypr').exists()
-    assert not (target / '.config/alacritty').exists()
+    assert (target / '.config/alacritty').exists() == (sys.platform == 'darwin')
     assert not (target / '.config/ghostty').exists()
     print('PASS: actual links, original-file backup, desktop exclusions')
     result = run(*command, '--apply')
     assert 'Applied 0 file links' in result.stdout
     assert len(list((target / '.local/state/dotfiles/backups').glob('*/.tmux.conf'))) == 1
     print('PASS: repeat application is idempotent')
-    run(*command, '--packages', 'aerospace', ok=False)
+    run(*command, '--platform', 'omarchy', '--packages', 'aerospace', ok=False)
     assert (target / '.zshrc').is_symlink()
     print('PASS: desktop package selection refused')
 
@@ -456,23 +459,35 @@ if shutil.which('zsh'):
         target = Path(directory)
         shutil.copy(ROOT / 'shared/zsh/zshenv', target / '.zshenv')
         shutil.copy(ROOT / 'shared/zsh/zshrc', target / '.zshrc')
+        # Startup checks must not activate runtimes from the host's mise state.
+        fake_mise = target / '.local/bin/mise'
+        fake_mise.parent.mkdir(parents=True)
+        fake_mise.write_text('#!/bin/sh\n[ "$1" = activate ]\n')
+        fake_mise.chmod(0o755)
         shell_env = {**os.environ, 'HOME': directory, 'ZDOTDIR': directory,
                      'SHELL': '/bin/bash', 'ZSH': directory + '/missing-omz',
                      'TERM': 'xterm-256color', 'XDG_DATA_HOME': directory + '/.local/share',
                      'XDG_CONFIG_HOME': directory + '/.config',
-                     'ANDROID_HOME': directory + '/Android/Sdk', 'MISE_QUIET': '1'}
+                     'ANDROID_HOME': directory + '/Android/Sdk', 'MISE_QUIET': '1',
+                     'MISE_GLOBAL_CONFIG_FILE': directory + '/.config/mise/config.toml'}
         result = run('zsh', '-i', '-c',
                      'print -r -- "$PNPM_HOME"; print -r -- "$ANDROID_HOME"; print -r -- "SHELL=$SHELL"',
                      env=shell_env)
-        assert directory + '/.local/share/pnpm' in result.stdout
+        pnpm_directory = '/Library/pnpm' if sys.platform == 'darwin' else '/.local/share/pnpm'
+        assert directory + pnpm_directory in result.stdout
         assert directory + '/Android/Sdk' in result.stdout
         assert 'SHELL=' + shutil.which('zsh') in result.stdout
         assert not result.stderr, result.stderr
         fake_pi = target / '.local/bin/pi'
-        fake_pi.parent.mkdir(parents=True)
+        fake_pi.parent.mkdir(parents=True, exist_ok=True)
         fake_pi.write_text('#!/bin/sh\nprintf pi\nprintf " <%s>" "$@"\nprintf "\\n"\n')
         fake_pi.chmod(0o755)
+        shadow_pi = target / '.bun/bin/pi'
+        shadow_pi.parent.mkdir(parents=True)
+        shadow_pi.write_text('#!/bin/sh\necho wrong-launcher\n')
+        shadow_pi.chmod(0o755)
         result = run('zsh', '-i', '-c',
+                     'export PATH="$HOME/.bun/bin:$PATH"; '
                      'pi mcp list; pi auth check --provider openai; pi --version; pi', env=shell_env)
         assert result.stdout == ('pi <mcp> <list>\npi <auth> <check> <--provider> <openai>\n'
                                  'pi <--version>\npi <-c>\n'), result.stdout

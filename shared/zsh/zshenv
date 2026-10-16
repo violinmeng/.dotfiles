@@ -20,7 +20,7 @@ fi
 # Zsh's unique path array prevents duplication when shells are nested.
 typeset -U path
 path=("$HOME/.ghcup/bin" "$HOME/.local/share/mise/shims"
-      "$HOME/.cargo/bin" "$HOME/.bun/bin" "$HOME/.local/bin"
+      "$HOME/.cargo/bin" "$HOME/.local/bin" "$HOME/.bun/bin"
       /usr/local/bin "$HOME/development/flutter/bin" $path
       "$ANDROID_HOME/tools" "$ANDROID_HOME/tools/bin" "$ANDROID_HOME/platform-tools")
 export PATH
