@@ -163,6 +163,12 @@ installed but disabled because it sends `store=true` for the unified `openai`
 provider, which ChatGPT subscription requests reject. Pi's built-in compaction
 remains enabled.
 
+The Powerline welcome popup uses Pi's official coral-red, blue, and yellow
+logo colors. A local `powerline-welcome.ts` wrapper loads the pinned Powerline
+package without editing its checkout; its package-level extension discovery is
+disabled to avoid loading it twice. The welcome layout and countdown are unchanged.
+Run `node scripts/check-pi-welcome.mjs` with Node 22.18+ to check the logo colors.
+
 Run `node scripts/check-pi-latest-model.mjs` with Node 22.18+ to check model
 ordering, or add `--live` to verify a real reply using your existing login.
 

@@ -62,7 +62,10 @@
       "prompts": [],
       "themes": []
     },
-    "npm:pi-powerline-footer@0.12.3",
+    {
+      "source": "npm:pi-powerline-footer@0.12.3",
+      "extensions": []
+    },
     "npm:pi-openai-fast-mode@0.3.0",
     {
       "source": "git:github.com/algal/pi-openai-server-compaction@8a3de2f3b0c178fdd6f73f2f94172dfc3943e466",
