@@ -99,7 +99,8 @@ assert mac_files[Path('.zshrc')] == linux_files[Path('.zshrc')]
 assert 'agents' in installer.LINUX_DEFAULT and 'agents' in installer.MAC_DEFAULT
 assert mac_files[Path('.agents/.skill-lock.json')] == linux_files[Path('.agents/.skill-lock.json')]
 assert Path('.pi/agent/settings.json') in linux_files
-assert Path('.pi/agent/mcp.example.json') in linux_files
+assert Path('.pi/agent/mcp.example.json') not in linux_files
+assert mac_files[Path('.pi/agent/mcp.example.json')] == ROOT / 'macos/pi/mcp.example.json'
 assert Path('.pi/agent/mcp.json') not in linux_files
 assert Path('.pi/agent/mcp-auth.json') not in linux_files
 assert not any(path.parts[:2] in (('.config', 'hypr'), ('.config', 'foot')) for path in linux_files)
@@ -386,7 +387,7 @@ assert not set(pi_settings.get('extensions', [])) & {
     '-builtin:mcp', '-builtin:codemode', '-builtin:tool-search'}
 assert not {'mcp', 'mcpScript'} & json.loads(
     (ROOT / 'shared/pi/extensions/pi-tool-display/config.json').read_text())['customToolOverrides'].keys()
-mcp_example = json.loads((ROOT / 'shared/pi/mcp.example.json').read_text())
+mcp_example = json.loads((ROOT / 'macos/pi/mcp.example.json').read_text())
 assert set(mcp_example) == {'mcpServers'}
 assert mcp_example['mcpServers']['figma']['exposure'] == 'codemode'
 with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-local-') as directory:
@@ -403,8 +404,16 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-local-') as directory:
             '--target', directory)
         assert private_config.read_bytes() == original_mcp and not private_config.is_symlink()
         assert private_auth.read_bytes() == original_auth and not private_auth.is_symlink()
-    assert private_config.with_name('mcp.example.json').is_symlink()
-print('PASS: native MCP selection, private config/auth exclusion, repeat deployment preserves local servers')
+    assert not private_config.with_name('mcp.example.json').exists()
+with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-macos-') as directory:
+    target = Path(directory)
+    selected = installer.files_for(['pi'], 'macos')
+    installer.deploy(selected, target, False)
+    assert not list(target.iterdir()), 'macOS Pi preview changed the target'
+    installer.deploy(selected, target, True)
+    assert (target / '.pi/agent/mcp.example.json').resolve() == ROOT / 'macos/pi/mcp.example.json'
+    assert not (target / '.pi/agent/mcp.json').exists(), 'Example must not activate Figma automatically'
+print('PASS: native MCP selection, macOS-only Figma example, private config/auth preservation')
 with patch.object(installer, 'command') as execute:
     installer.install_pi_plugins(['pi'], False)
     execute.assert_not_called()

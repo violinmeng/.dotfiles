@@ -48,7 +48,10 @@ SHARED_CONFIGS = {
 }
 PLATFORM_CONFIGS = {
     'omarchy': {'mise': (('linux/mise/config.toml', '.config/mise/config.toml'),)},
-    'macos': {'mise': (('macos/mise/config.toml', '.config/mise/config.toml'),)} | {
+    'macos': {
+        'mise': (('macos/mise/config.toml', '.config/mise/config.toml'),),
+        'pi': SHARED_CONFIGS['pi'] + (('macos/pi', '.pi/agent'),),
+    } | {
         name: ((f'macos/{name}', f'.config/{name}'),)
         for name in ('alacritty', 'ghostty', 'aerospace')
     },
