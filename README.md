@@ -147,6 +147,19 @@ SDK import used by the pinned Vim integration. The existing MCP adapter owns
 third-party packages still emit host dependency metadata warnings; those are
 upstream package declarations and are not patched locally.
 
+New Pi sessions select the newest general-purpose OpenAI GPT release in Pi's
+available model catalog, including the `-sol` family, without a fixed model ID.
+Explicit CLI model choices and resumed conversations keep their selected model.
+New releases become selectable when Pi's catalog includes them; update Pi when
+its bundled catalog is out of date. ChatGPT requests use HTTP streaming (`sse`)
+so server errors remain readable. The pinned server-compaction extension is
+installed but disabled because it sends `store=true` for the unified `openai`
+provider, which ChatGPT subscription requests reject. Pi's built-in compaction
+remains enabled.
+
+Run `node scripts/check-pi-latest-model.mjs` with Node 22.18+ to check model
+ordering, or add `--live` to verify a real reply using your existing login.
+
 Start `pi` in your project and use `/login` to connect a provider. Authentication
 is not part of installation.
 
