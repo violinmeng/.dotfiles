@@ -35,7 +35,8 @@ for relative in ('scripts/check-nvim-plugins.lua',
                  'shared/kvim/lua/core/packages.lua',
                  'shared/kvim/lua/plugins/init.lua',
                  'shared/kvim/lua/plugins/lsp.lua',
-                 'shared/kvim/lua/plugins/conform.lua'):
+                 'shared/kvim/lua/plugins/conform.lua',
+                 'shared/kvim/lua/plugins/mini.lua'):
     run('lua', '-', str(ROOT / relative), input='assert(loadfile(arg[1]))\n')
 zed = (ROOT / 'shared/zed/settings.json').read_text()
 assert '/Users/' not in zed and '/opt/homebrew' not in zed
@@ -56,6 +57,8 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-linux-') as directory:
     assert original.is_symlink()
     assert original.resolve() == ROOT / 'shared/tmux/tmux.conf'
     assert (target / '.zshrc').resolve() == ROOT / 'shared/zsh/zshrc'
+    assert (target / '.config/nvim/init.lua').resolve() == ROOT / 'shared/kvim/init.lua'
+    assert not (target / '.config/kvim').exists()
     platform_directory = 'macos' if sys.platform == 'darwin' else 'linux'
     assert (target / '.config/mise/config.toml').resolve() == ROOT / platform_directory / 'mise/config.toml'
     assert (target / '.agents/skills/show-me/SKILL.md').resolve() == ROOT / 'shared/agents/skills/show-me/SKILL.md'
@@ -97,6 +100,15 @@ assert mac_files[Path('.config/mise/config.toml')] == ROOT / 'macos/mise/config.
 assert mac_files[Path('.config/alacritty/alacritty.toml')] == ROOT / 'macos/alacritty/alacritty.toml'
 assert mac_files[Path('.zshrc')] == linux_files[Path('.zshrc')]
 assert 'agents' in installer.LINUX_DEFAULT and 'agents' in installer.MAC_DEFAULT
+assert not (ROOT / 'shared/nvim').exists()
+for system in ('macos', 'omarchy'):
+    mappings = installer.config_mappings(system)
+    assert 'nvim' not in mappings
+    files = installer.files_for(['kvim'], system)
+    assert files[Path('.config/nvim/init.lua')] == ROOT / 'shared/kvim/init.lua'
+    assert not any(p.is_relative_to('.config/kvim') for p in files)
+assert 'kvim' in installer.LINUX_DEFAULT and 'kvim' in installer.MAC_DEFAULT
+assert 'alias knvim="nvim"' in (ROOT / 'shared/zsh/zshrc').read_text()
 assert mac_files[Path('.agents/.skill-lock.json')] == linux_files[Path('.agents/.skill-lock.json')]
 assert Path('.pi/agent/settings.json') in linux_files
 assert Path('.pi/agent/mcp.example.json') not in linux_files
@@ -184,7 +196,7 @@ specs = installer.plugin_specs(['zsh', 'tmux'])
 assert len(specs) == 6
 assert ('https://github.com/catppuccin/tmux.git', '.tmux/plugins/tmux', 'v2.1.2') in specs
 assert not any('sensible' in url or 'battery' in url for url, _, _ in specs)
-assert installer.plugin_specs(['git', 'nvim']) == []
+assert installer.plugin_specs(['git', 'kvim']) == []
 print('PASS: active plugin selection and pinned Catppuccin version')
 with tempfile.TemporaryDirectory(prefix='dotfiles-plugin-') as directory:
     base = Path(directory)
@@ -216,18 +228,25 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-plugin-') as directory:
 print('PASS: plugin preview, real clone, version pin, repeat run, symlink refusal')
 
 with patch.object(installer.subprocess, 'run') as process:
-    installer.install_editor_plugins(['nvim'], False)
+    installer.install_editor_plugins(['git'], True)
+    installer.install_editor_plugins(['kvim'], False)
     process.assert_not_called()
 with patch.object(installer.shutil, 'which', return_value='/usr/bin/tool'), \
+     patch.object(installer, 'require_tree_sitter_cli') as tree_sitter, \
+     patch.object(installer, 'sync_kvim_treesitter') as sync, \
      patch.object(installer.subprocess, 'run') as process:
-    installer.install_editor_plugins(['nvim'], True)
+    installer.install_editor_plugins(['kvim'], True)
+    tree_sitter.assert_called_once()
+    sync.assert_called_once()
     assert process.call_count == 1
     assert process.call_args.kwargs['env']['NVIM_APPNAME'] == 'nvim'
     assert process.call_args.kwargs['check'] is True
     assert 'DOTFILES_NVIM_CHECK' in process.call_args.kwargs['env']
-with patch.object(installer.shutil, 'which', return_value=None):
+with patch.object(installer.shutil, 'which', return_value=None), \
+     patch.object(installer, 'require_tree_sitter_cli'), \
+     patch.object(installer, 'sync_kvim_treesitter'):
     try:
-        installer.install_editor_plugins(['nvim'], True)
+        installer.install_editor_plugins(['kvim'], True)
     except ValueError:
         pass
     else:
@@ -248,7 +267,7 @@ print('PASS: supported Tree-sitter CLI versions accepted; obsolete CLI rejected'
 
 with tempfile.TemporaryDirectory(prefix='dotfiles-ts-local-') as directory:
     base = Path(directory)
-    checkout = base / 'data/kvim/site/pack/core/opt/nvim-treesitter'
+    checkout = base / 'data/nvim/site/pack/core/opt/nvim-treesitter'
     run('git', 'init', str(checkout))
     (checkout / 'local.lua').write_text('return 1\n')
     run('git', '-C', str(checkout), 'add', 'local.lua')
@@ -281,6 +300,7 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-platform-') as directory:
         assert 'linux/mise/config.toml' in result.stdout
     run(*command, '--packages', 'mise-linux', ok=False)
     run(*command, '--packages', 'stow', ok=False)
+    run(*command, '--packages', 'nvim', ok=False)
     run(*command, '--packages', 'tmux,,zsh', ok=False)
 print('PASS: macOS preview has no writes, platform guard, removed package refusal')
 

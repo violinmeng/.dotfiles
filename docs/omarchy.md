@@ -13,7 +13,7 @@ From the repository, run:
 ./install.py --dry-run
 ```
 
-The default selection is `agents,zsh,git,fzf,tmux,nvim,kvim,yazi,mise`. Each file gets a
+The default selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`. Each file gets a
 symlink into `shared/<app>/` or `linux/<app>/` in this repository. Shared home
 directories remain real directories, so unrelated files stay in place. The
 `mise` package uses `linux/mise/config.toml`; macOS uses its own declaration.
@@ -94,7 +94,7 @@ New tmux servers load it automatically. The tmux prefix is `Ctrl+a`.
 ## Install Neovim plugins
 
 ```sh
-./install.py --apply --packages nvim --install-plugins
+./install.py --apply --packages kvim --install-plugins
 ```
 
 Add `--install-packages` when Neovim or the C build tools are missing. The
@@ -104,24 +104,24 @@ profile's lockfile. The configuration builds Telescope's native FZF extension.
 A verification step checks startup errors, plugin directories, the compiled
 library, and loading the FZF extension; failures stop the installer.
 
-The `nvim` profile currently has nine active plugins. Legacy Mason, Treesitter,
-and Blink declarations inside Lua comments are not enabled by this command.
-Use `--packages kvim --install-plugins` for the separate Kvim profile. That
-profile has its own plugin set. The `knvim` shell alias selects this profile,
-so it needs `~/.config/kvim` as well as its own installed plugins. Kvim is included
-in the default configuration selection. It requires Neovim 0.12+ and the
+Kvim is the only Neovim profile and is included in the default selection.
+`shared/kvim` deploys to `~/.config/nvim`; both `nvim` and the compatibility
+alias `knvim` use it without `NVIM_APPNAME`. It requires Neovim 0.12+ and the
 supported `main` Treesitter and text-object APIs. `--install-packages` installs
 Tree-sitter CLI 0.26.1+ through Omarchy; parser generation also needs Node.
 If an older npm CLI shadows the distro binary, remove it with
 `npm uninstall --global --prefix ~/.local tree-sitter-cli`.
-During installer runs, parser builds are synchronous and verified before success. Neither command invokes `PackUpdate` or
-installs language runtimes. You can include `zsh,tmux,nvim` in a single selection
-to reproduce the installed shell, multiplexer, and editor plugins.
+During installer runs, parser builds are synchronous and verified before success.
+The installer also checks `mini.hipatterns` Hex highlighting. It does not invoke
+`PackUpdate` or install language runtimes. You can include `zsh,tmux,kvim` in a
+single selection to reproduce shell, multiplexer, and editor plugins.
+For existing two-profile installations, follow the backup/migration notes in
+[the Neovim section](../README.md#neovim) before deploying.
 
 ## Select additional editors
 
 ```sh
-./install.py --dry-run --packages zsh,git,fzf,tmux,nvim,kvim,emacs,yazi,mise,zed
+./install.py --dry-run --packages zsh,git,fzf,tmux,kvim,emacs,yazi,mise,zed
 ```
 
 Add `--apply` to deploy that selection. Optional `vim`, `pi`, and `herdr` packages

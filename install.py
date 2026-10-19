@@ -15,12 +15,12 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent
-LINUX_DEFAULT = ('agents', 'zsh', 'git', 'fzf', 'tmux', 'nvim', 'kvim', 'yazi', 'mise')
+LINUX_DEFAULT = ('agents', 'zsh', 'git', 'fzf', 'tmux', 'kvim', 'yazi', 'mise')
 # Desktop/terminal packages are deliberately excluded.
 PACKAGES = {
     'zsh': ('zsh',), 'git': ('git', 'git-lfs'),
     'fzf': ('fzf', 'fd', 'ripgrep', 'bat', 'jq', 'sqlite'),
-    'tmux': ('tmux',), 'nvim': ('neovim', 'base-devel', 'unzip'),
+    'tmux': ('tmux',),
     'kvim': ('neovim', 'base-devel', 'unzip', 'tree-sitter-cli', 'curl', 'tar'), 'vim': ('vim',),
     'emacs': ('emacs',), 'yazi': ('yazi', 'ffmpeg', '7zip', 'poppler',
                               'imagemagick', 'mpv', 'perl-image-exiftool', 'mediainfo'),
@@ -28,14 +28,15 @@ PACKAGES = {
 }
 
 
-MAC_DEFAULT = ('agents', 'zsh', 'alacritty', 'git', 'fzf', 'tmux', 'nvim', 'kvim', 'mise', 'herdr', 'pi', 'zed')
+MAC_DEFAULT = ('agents', 'zsh', 'alacritty', 'git', 'fzf', 'tmux', 'kvim', 'mise', 'herdr', 'pi', 'zed')
 MAC_PACKAGES = set(PACKAGES) | {'alacritty', 'ghostty', 'aerospace'}
 
 # Source paths are independent of their destinations under the target home.
 SHARED_CONFIGS = {
     name: ((f'shared/{name}', f'.config/{name}'),)
-    for name in ('nvim', 'kvim', 'fzf', 'yazi', 'zed', 'herdr')
+    for name in ('fzf', 'yazi', 'zed', 'herdr')
 } | {
+    'kvim': (('shared/kvim', '.config/nvim'),),
     'zsh': (('shared/zsh/zshrc', '.zshrc'), ('shared/zsh/zshenv', '.zshenv'),
             ('shared/zsh/custom', '.zsh-custom')),
     'git': (('shared/git/gitconfig', '.gitconfig'),),
@@ -253,7 +254,7 @@ def sync_kvim_treesitter():
     }
     data = Path(os.environ.get('XDG_DATA_HOME', str(Path.home() / '.local/share')))
     for name in ('nvim-treesitter', 'nvim-treesitter-textobjects'):
-        path = data / 'kvim/site/pack/core/opt' / name
+        path = data / 'nvim/site/pack/core/opt' / name
         if not path.exists():
             continue  # vim.pack installs missing plugins from the lockfile.
         revision = lock[name]['rev']
@@ -271,24 +272,23 @@ def sync_kvim_treesitter():
 
 
 def install_editor_plugins(packages, apply):
-    for profile in ('nvim', 'kvim'):
-        if profile not in packages:
-            continue
-        print(f'Initialize and verify Neovim profile: {profile}')
-        if apply:
-            if profile == 'kvim':
-                require_tree_sitter_cli()
-                sync_kvim_treesitter()
-            for executable in ('nvim', 'make', 'cc'):
-                if not shutil.which(executable):
-                    raise ValueError(f'Neovim plugin installation requires {executable}')
-            environment = {**os.environ, 'NVIM_APPNAME': profile,
-                           'DOTFILES_NVIM_CHECK': str(ROOT / 'scripts/check-nvim-plugins.lua'),
-                           'DOTFILES_NVIM_INSTALL': '1',
-                           'PATH': str(Path.home() / '.local/bin') + os.pathsep + os.environ.get('PATH', '')}
-            subprocess.run(['nvim', '--headless', '-c',
-                            'lua dofile(vim.env.DOTFILES_NVIM_CHECK)'],
-                           env=environment, check=True, timeout=600)
+    if 'kvim' not in packages:
+        return
+    print('Initialize and verify Kvim (default Neovim configuration)')
+    if not apply:
+        return
+    require_tree_sitter_cli()
+    sync_kvim_treesitter()
+    for executable in ('nvim', 'make', 'cc'):
+        if not shutil.which(executable):
+            raise ValueError(f'Neovim plugin installation requires {executable}')
+    environment = {**os.environ, 'NVIM_APPNAME': 'nvim',
+                   'DOTFILES_NVIM_CHECK': str(ROOT / 'scripts/check-nvim-plugins.lua'),
+                   'DOTFILES_NVIM_INSTALL': '1',
+                   'PATH': str(Path.home() / '.local/bin') + os.pathsep + os.environ.get('PATH', '')}
+    subprocess.run(['nvim', '--headless', '-c',
+                    'lua dofile(vim.env.DOTFILES_NVIM_CHECK)'],
+                   env=environment, check=True, timeout=600)
 
 
 PI_PACKAGE = '@earendil-works/pi-coding-agent@1.3.0'

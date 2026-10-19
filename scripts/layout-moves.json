@@ -1,6 +1,5 @@
 {
   "agents/.agents": "shared/agents",
-  "nvim/.config/nvim": "shared/nvim",
   "kvim/.config/kvim": "shared/kvim",
   "fzf/.config/fzf": "shared/fzf",
   "yazi/.config/yazi": "shared/yazi",

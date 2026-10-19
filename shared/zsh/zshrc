@@ -111,7 +111,8 @@ fi
 alias zshconfig="vim ~/.zshrc"
 alias sourcezsh="source ~/.zshrc"
 alias vim="nvim"
-alias knvim="NVIM_APPNAME=kvim nvim"
+# Compatibility command; Kvim is now the default Neovim configuration.
+alias knvim="nvim"
 alias python="python3"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 

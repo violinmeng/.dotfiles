@@ -14,7 +14,7 @@ install.py       Public installer and source-to-home mappings
 ```
 
 Source paths do not mirror your home directory. For example,
-`shared/nvim/init.lua` links to `~/.config/nvim/init.lua`, and
+`shared/kvim/init.lua` links to `~/.config/nvim/init.lua`, and
 `shared/zsh/zshrc` links to `~/.zshrc`.
 
 ## Requirements
@@ -47,7 +47,7 @@ cd ~/.dotfiles
 Preview is the default, even without `--dry-run`. No software, links, login
 changes, or authentication flows run until you add `--apply`.
 
-The default Linux selection is `agents,zsh,git,fzf,tmux,nvim,kvim,yazi,mise`.
+The default Linux selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`.
 It leaves the Omarchy desktop and terminal settings unchanged. See the
 [Omarchy setup guide](docs/omarchy.md).
 
@@ -59,7 +59,7 @@ is saved under `linux/foot/` and is also restored manually.
 separately; the guide records the official ARM64 AppImage setup.
 
 The default Mac selection is
-`agents,zsh,alacritty,git,fzf,tmux,nvim,kvim,mise,herdr,pi,zed`.
+`agents,zsh,alacritty,git,fzf,tmux,kvim,mise,herdr,pi,zed`.
 `aerospace`, `ghostty`, `emacs`, `vim`, and `yazi` can also be selected.
 To preview the Mac branch from Linux:
 
@@ -73,7 +73,7 @@ preview and command-routing tests; it has not been executed on a Mac here.
 ## Install the selected configuration
 
 ```sh
-./install.py --apply --packages zsh,tmux,nvim,kvim --install-packages --install-plugins
+./install.py --apply --packages zsh,tmux,kvim --install-packages --install-plugins
 ```
 
 On macOS, `--install-packages` installs Homebrew if missing, applies
@@ -113,7 +113,7 @@ Install runtimes before Kvim plugins on a fresh machine:
 ```sh
 # The mise package selects the current platform's declaration.
 ./install.py --apply --packages zsh,mise --install-runtimes
-./install.py --apply --packages zsh,tmux,nvim,kvim --install-packages --install-plugins
+./install.py --apply --packages zsh,tmux,kvim --install-packages --install-plugins
 ```
 
 On Mac, `--install-packages` provisions mise through Homebrew. On Omarchy, install
@@ -223,15 +223,16 @@ Restart Pi after migration; subsequent native config edits can use `/reload`.
 | --- | --- |
 | `zsh`, `fzf` | Shell environment, custom theme, and fuzzy-finder helpers |
 | `git`, `tmux` | Git identity/settings and terminal multiplexer |
-| `nvim`, `kvim`, `vim`, `emacs` | Independent editor profiles |
+| `kvim`, `vim`, `emacs` | Kvim (default Neovim), Vim, and Emacs |
 | `mise` | Platform-specific global runtime declaration |
 | `alacritty`, `ghostty`, `aerospace` | Optional macOS terminal and window-manager settings |
 | `yazi` | File manager, keymaps, and themes |
 | `zed`, `pi`, `herdr` | Editor and coding-agent settings |
 | `agents` | Shared global agent skills and installation metadata under `~/.agents` |
 
-`nvim` selects `~/.config/nvim`. The `knvim` alias selects `~/.config/kvim`.
-They use separate configuration, plugins, and runtime data. `macos/terminal-themes`
+`nvim`, `vim` (shell alias), and `knvim` all use Kvim at `~/.config/nvim`.
+`kvim` is the only Neovim installer package; the old `nvim` package is removed.
+No `NVIM_APPNAME` override is needed. `macos/terminal-themes`
 contains manually imported Mac Terminal themes and is not deployed by the installer.
 
 The installer selects only versioned or nonignored source files using Git.
@@ -251,14 +252,32 @@ headless startup check, including native FZF and Kvim parser loading.
 
 ## Neovim
 
-The Neovim configuration lives under `shared/nvim` and is organized into:
+The Neovim configuration lives under `shared/kvim` and is organized into:
 
 - `lua/config` — options, keymaps, and autocommands
-- `lua/core` — package management, LSP setup, and shared infrastructure
-- `lua/plugins` — completion, linting, Treesitter, Telescope, Trouble, Which Key, Mason, and colorschemes
-- `lsp` — language-server-specific configuration
+- `lua/core` — native package management
+- `lua/plugins` — completion, LSP, Treesitter, Telescope, mini.nvim, and colorscheme setup
+- `snippets` — custom snippets
 
 Plugins are managed through Neovim's native package mechanism, with versions recorded in `nvim-pack-lock.json`.
+`mini.hipatterns` is enabled from the existing pinned `mini.nvim` package and
+highlights six-digit Hex colors such as `#FF8800` using their background color.
+It does not enable CSS-variable, RGB/HSL, or short-Hex parsing.
+
+When migrating an existing two-profile installation, close Neovim first. Back
+up `~/.config/nvim` (including dereferenced dotfiles links) before removing the
+retired configuration; do not overlay Kvim on the old profile's leftover Lua
+or LSP files. Back up the old `nvim` data/state/cache directories, then move the
+corresponding `kvim` directories to `nvim` to retain plugin checkouts and local
+work without updating pins. Deploy with:
+
+```sh
+./install.py --apply --packages kvim --install-plugins
+```
+
+Retire `~/.config/kvim` after saving any private additions;
+remove any personal `NVIM_APPNAME=kvim` overrides. The installer itself only
+backs up conflicting files, not whole retired profiles or runtime directories.
 
 ## Emacs
 
