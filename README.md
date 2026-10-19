@@ -88,7 +88,7 @@ Correct links are left alone on repeat runs. A failure while creating links
 restores the files and directory links changed by that invocation. Software
 installation is separate from that file rollback.
 
-For a normal file restore, remove its new symlink and move the corresponding
+For a normal file restore, remove its new symlink (or copied skill manifest) and move the corresponding
 backup to its original path. Expanded repository directory links are recorded
 in `directory-links.json`, with the original link stored in `.directory-links/`.
 Expansion keeps unrelated contents reachable through links to their old source.
@@ -320,9 +320,9 @@ The `agents` package keeps global skills and `.skill-lock.json` under
 ```text
 shared/agents/
 ├── .skill-lock.json       → ~/.agents/.skill-lock.json
-└── skills/<name>/        → ~/.agents/skills/<name>/ (individual file links)
-    ├── SKILL.md
-    └── supporting files
+└── skills/<name>/        → ~/.agents/skills/<name>/
+    ├── SKILL.md          (regular file copy for Codex discovery)
+    └── supporting files  (individual file links)
 ```
 
 It is included in both platform defaults. Preview or apply it separately with
@@ -333,17 +333,35 @@ the public installer:
 ./install.py --apply --packages agents
 ```
 
-The installer links individual files into `~/.agents`, backs up conflicting
-files, and preserves unrelated local skills. Updates to linked skill files are
-visible in the dotfiles working tree; review newly added files before tracking
-them. GNU Stow is not required.
+The installer copies `SKILL.md` manifests as regular files and links supporting
+files into `~/.agents`. Codex skips symlinked `SKILL.md` entries, which also hides
+those skills from clients such as T3 Code that use its `skills/list` API.
+Existing file links and changed local copies are backed up before replacement;
+unrelated local skills are preserved. Edit the canonical manifests under
+`shared/agents/skills`, then rerun `./install.py --apply --packages agents` to
+refresh the installed copies after edits or pulls. Identical copies are left
+untouched. GNU Stow is not required.
 
 Pi discovers `~/.agents/skills` automatically. Other compatible agents can use
 this shared location or their existing links to it. The included
 [`show-me`](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me)
 skill explains code visually. In Pi, run `/reload` or start a new session to
 discover newly installed skills, then invoke it with `/skill:show-me`. Applying
-the installer again should report zero changed links.
+the installer again should report zero changed files.
+
+In Codex, explicitly select `$grill-me` (or use its skills picker); in T3 Code,
+select `grill-me` from the skills picker. This skill remains explicit-only by
+design and reads the shared `grilling` instructions without requiring a
+Claude-specific Skill tool. Start a new conversation if an existing one has
+stale skill context.
+
+With Codex CLI installed, verify discovery without making a model request:
+
+```sh
+python3 scripts/check-codex-skills.py
+# Also check the installed global skills from a particular project:
+python3 scripts/check-codex-skills.py --cwd /path/to/project
+```
 
 Keep credentials and local runtime state out of the package, and review
 third-party skills before use.

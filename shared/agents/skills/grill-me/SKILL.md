@@ -4,4 +4,5 @@ description: A relentless interview to sharpen a plan or design.
 disable-model-invocation: true
 ---
 
-Call the Skill tool with "grilling".
+Read `../grilling/SKILL.md`, resolving the path relative to this skill's directory,
+and follow its interview process for the user's plan or design.

@@ -13,9 +13,10 @@ From the repository, run:
 ./install.py --dry-run
 ```
 
-The default selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`. Each file gets a
-symlink into `shared/<app>/` or `linux/<app>/` in this repository. Shared home
-directories remain real directories, so unrelated files stay in place. The
+The default selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`. Most files get a
+symlink into `shared/<app>/` or `linux/<app>/` in this repository. Skill manifests
+(`SKILL.md`) are copied as regular files so Codex and T3 Code can discover them.
+Shared home directories remain real directories, so unrelated files stay in place. The
 `mise` package uses `linux/mise/config.toml`; macOS uses its own declaration.
 
 ## Install dependencies and apply the configuration

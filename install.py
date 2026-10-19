@@ -136,10 +136,19 @@ def deploy(files, target, apply):
                 for path, saved in unfolded], indent=2) + '\n')
         for relative, source in files.items():
             destination = target / relative
-            if destination.exists() and destination.resolve() == source.resolve():
+            # Codex (and clients using its skills/list API) skips symlinked
+            # SKILL.md entries. Keep discovery manifests regular, while other
+            # managed resources remain per-file links to filtered sources.
+            copy_manifest = relative.parts[:2] == ('.agents', 'skills') and relative.name == 'SKILL.md'
+            if copy_manifest:
+                if (destination.is_file() and not destination.is_symlink()
+                        and destination.read_bytes() == source.read_bytes()):
+                    continue
+            elif destination.exists() and destination.resolve() == source.resolve():
                 continue
             exists = os.path.lexists(destination)
-            print(f'{"BACKUP + LINK" if exists else "LINK"} {destination} -> {source}', flush=True)
+            operation = 'COPY' if copy_manifest else 'LINK'
+            print(f'{"BACKUP + " if exists else ""}{operation} {destination} -> {source}', flush=True)
             if not apply:
                 continue
             saved = backup / relative if exists else None
@@ -148,10 +157,13 @@ def deploy(files, target, apply):
                 destination.rename(saved)
             changed.append((destination, saved))
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.symlink_to(source)
+            if copy_manifest:
+                shutil.copy2(source, destination)
+            else:
+                destination.symlink_to(source)
     except (OSError, ValueError):
         for destination, saved in reversed(changed):
-            if destination.is_symlink():
+            if destination.is_symlink() or destination.is_file():
                 destination.unlink()
             if saved is not None:
                 saved.rename(destination)
@@ -161,7 +173,7 @@ def deploy(files, target, apply):
             saved.rename(destination)
         raise
     if apply:
-        print(f'Applied {len(changed)} file links; expanded {len(unfolded)} directory links. '
+        print(f'Applied {len(changed)} files (links/copies); expanded {len(unfolded)} directory links. '
               f'Backups, if needed: {backup}', flush=True)
 
 

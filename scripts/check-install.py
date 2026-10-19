@@ -61,7 +61,9 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-linux-') as directory:
     assert not (target / '.config/kvim').exists()
     platform_directory = 'macos' if sys.platform == 'darwin' else 'linux'
     assert (target / '.config/mise/config.toml').resolve() == ROOT / platform_directory / 'mise/config.toml'
-    assert (target / '.agents/skills/show-me/SKILL.md').resolve() == ROOT / 'shared/agents/skills/show-me/SKILL.md'
+    skill_manifest = target / '.agents/skills/show-me/SKILL.md'
+    assert skill_manifest.is_file() and not skill_manifest.is_symlink()
+    assert skill_manifest.read_bytes() == (ROOT / 'shared/agents/skills/show-me/SKILL.md').read_bytes()
     assert (target / '.agents/.skill-lock.json').resolve() == ROOT / 'shared/agents/.skill-lock.json'
     assert local_skill.read_text() == 'preserve local skill\n' and not local_skill.is_symlink()
     backups = list((target / '.local/state/dotfiles/backups').glob('*/.tmux.conf'))
@@ -71,7 +73,7 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-linux-') as directory:
     assert not (target / '.config/ghostty').exists()
     print('PASS: actual links, original-file backup, desktop exclusions')
     result = run(*command, '--apply')
-    assert 'Applied 0 file links' in result.stdout
+    assert 'Applied 0 files' in result.stdout
     assert len(list((target / '.local/state/dotfiles/backups').glob('*/.tmux.conf'))) == 1
     print('PASS: repeat application is idempotent')
     run(*command, '--platform', 'omarchy', '--packages', 'aerospace', ok=False)
@@ -191,6 +193,57 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-rollback-') as directory:
             raise AssertionError('Expected failure')
     assert not original.is_symlink() and original.read_text() == 'keep me\n'
     print('PASS: link failure restores the original file')
+
+with tempfile.TemporaryDirectory(prefix='dotfiles-skill-manifest-') as directory:
+    base = Path(directory)
+    target = base / 'home'
+    source = base / 'SKILL.md'
+    source.write_text('---\nname: fixture\ndescription: Test skill.\n---\n')
+    relative = Path('.agents/skills/fixture/SKILL.md')
+    destination = target / relative
+    destination.parent.mkdir(parents=True)
+    destination.symlink_to(source)
+    files = {relative: source}
+    installer.deploy(files, target, False)
+    assert destination.is_symlink(), 'Preview changed the skill manifest'
+
+    def partial_copy(src, dst):
+        Path(dst).write_text('partial write')
+        raise OSError('simulated copy failure')
+
+    with patch.object(installer.shutil, 'copy2', side_effect=partial_copy):
+        try:
+            installer.deploy(files, target, True)
+        except OSError:
+            pass
+        else:
+            raise AssertionError('Expected copy failure')
+    assert destination.is_symlink() and destination.resolve() == source
+    installer.deploy(files, target, True)
+    assert not destination.is_symlink() and destination.read_bytes() == source.read_bytes()
+    before = destination.stat().st_mtime_ns
+    installer.deploy(files, target, True)
+    assert destination.stat().st_mtime_ns == before, 'Unchanged skill was recopied'
+    destination.write_text('preserve local edits')
+    installer.deploy(files, target, True)
+    saved = list((target / '.local/state/dotfiles/backups').glob('*/' + str(relative)))
+    assert any(not p.is_symlink() and p.read_text() == 'preserve local edits' for p in saved)
+    assert destination.read_bytes() == source.read_bytes()
+    # Failure later in a mixed deployment also rolls back a completed copy.
+    destination.write_text('restore this version')
+    with patch.object(Path, 'symlink_to', side_effect=OSError('later link failure')):
+        try:
+            installer.deploy(files | {Path('.other'): source}, target, True)
+        except OSError:
+            pass
+        else:
+            raise AssertionError('Expected link failure')
+    assert destination.read_text() == 'restore this version' and not destination.is_symlink()
+    assert not (target / '.other').exists()
+print('PASS: regular skill manifests, preview, symlink migration, copies, backups, rollback, idempotence')
+grill_me = (ROOT / 'shared/agents/skills/grill-me/SKILL.md').read_text()
+assert '../grilling/SKILL.md' in grill_me and 'Call the Skill tool' not in grill_me
+assert (ROOT / 'shared/agents/skills/grill-me/../grilling/SKILL.md').is_file()
 
 specs = installer.plugin_specs(['zsh', 'tmux'])
 assert len(specs) == 6
