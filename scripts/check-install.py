@@ -404,7 +404,7 @@ with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-local-') as directory:
             '--target', directory)
         assert private_config.read_bytes() == original_mcp and not private_config.is_symlink()
         assert private_auth.read_bytes() == original_auth and not private_auth.is_symlink()
-    assert not private_config.with_name('mcp.example.json').exists()
+    assert private_config.with_name('mcp.example.json').exists() == (sys.platform == 'darwin')
 with tempfile.TemporaryDirectory(prefix='dotfiles-mcp-macos-') as directory:
     target = Path(directory)
     selected = installer.files_for(['pi'], 'macos')
