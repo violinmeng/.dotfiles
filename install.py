@@ -15,8 +15,15 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(ROOT / 'scripts'))
+from restore_ssh import restore_ssh
+
 LINUX_DEFAULT = ('agents', 'zsh', 'git', 'fzf', 'tmux', 'kvim', 'yazi', 'mise')
-# Desktop/terminal packages are deliberately excluded.
+OMARCHY_SETUP = (*LINUX_DEFAULT, 'pi', 'zed')
+OMARCHY_DESKTOP = (('linux/foot', '.config/foot'), ('linux/hypr', '.config/hypr'))
+SETUP_DEPENDENCIES = ('fuse2', 'grim', 'slurp', 'satty', 'libyaml', 'libffi')
+# Desktop/terminal settings require the explicit --setup profile.
 PACKAGES = {
     'zsh': ('zsh',), 'git': ('git', 'git-lfs'),
     'fzf': ('fzf', 'fd', 'ripgrep', 'bat', 'jq', 'sqlite'),
@@ -24,7 +31,7 @@ PACKAGES = {
     'kvim': ('neovim', 'base-devel', 'unzip', 'tree-sitter-cli', 'curl', 'tar'), 'vim': ('vim',),
     'emacs': ('emacs',), 'yazi': ('yazi', 'ffmpeg', '7zip', 'poppler',
                               'imagemagick', 'mpv', 'perl-image-exiftool', 'mediainfo'),
-    'mise': (), 'zed': (), 'pi': (), 'herdr': (), 'agents': (),
+    'mise': ('mise',), 'zed': (), 'pi': (), 'herdr': (), 'agents': (),
 }
 
 
@@ -63,25 +70,49 @@ def config_mappings(system):
     return SHARED_CONFIGS | PLATFORM_CONFIGS[system]
 
 
-def files_for(packages, system):
+def source_names():
+    if (ROOT / '.git').exists():
+        result = subprocess.check_output(
+            ['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard',
+             '--', 'shared', 'linux', 'macos'], cwd=ROOT)
+        return sorted(set(os.fsdecode(result).split('\0')) - {''})
+    # GitHub ZIP downloads have no .git or ignore engine. A checked-in allowlist
+    # prevents runtime files or credentials added after extraction being linked.
+    manifest = json.loads((ROOT / 'install-manifest.json').read_text())
+    if manifest.get('version') != 1 or not isinstance(manifest.get('files'), list):
+        raise ValueError('Invalid install-manifest.json; download the project again')
+    names = manifest['files']
+    for name in names:
+        if (not isinstance(name, str) or Path(name).is_absolute() or '..' in Path(name).parts
+                or not Path(name).parts or Path(name).parts[0] not in ('shared', 'linux', 'macos')):
+            raise ValueError('Unsafe source path in install-manifest.json')
+    return sorted(set(names))
+
+
+def files_for(packages, system, setup=False):
     # Only versioned or nonignored source files belong in a deployment. Plugin
     # checkouts, secrets and runtime state can live inside configuration folders.
     mappings = [mapping for package in packages for mapping in config_mappings(system)[package]]
-    result = subprocess.check_output(
-        ['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--',
-         *(source for source, _ in mappings)], cwd=ROOT)
+    if setup:
+        mappings += list(OMARCHY_DESKTOP)
     files = {}
-    for name in sorted(set(os.fsdecode(result).split('\0')) - {''}):
-        source = ROOT / name
-        if not source.is_file() and not source.is_symlink():
-            continue
-        if source.name in ('.gitignore', '.DS_Store'):
+    for name in source_names():
+        if Path(name).name in ('.gitignore', '.DS_Store'):
             continue
         matches = [(Path(destination) / Path(name).relative_to(base) if Path(name) != Path(base)
                     else Path(destination)) for base, destination in mappings
                    if Path(name) == Path(base) or Path(base) in Path(name).parents]
+        if not matches:
+            continue
         if len(matches) != 1:
             raise ValueError(f'Source must have exactly one destination: {name}')
+        source = ROOT / name
+        if not source.is_file():
+            if not (ROOT / '.git').exists():
+                raise ValueError(f'Archive is missing a managed source: {name}')
+            continue
+        if not source.resolve().is_relative_to(ROOT):
+            raise ValueError(f'Managed source points outside the repository: {name}')
         relative = matches[0]
         if relative in files:
             raise ValueError(f'Duplicate target: {relative}')
@@ -417,10 +448,11 @@ def download_installer(url, shell, apply, env=None):
             subprocess.run(['curl', '--fail', '--silent', '--show-error', '--location',
                             '--proto', '=https', '--proto-redir', '=https',
                             url, '--output', str(destination)], check=True)
-            subprocess.run([shell, str(destination)], env=env, check=True)
+            executable = [shell] if isinstance(shell, str) else shell
+            subprocess.run([*executable, str(destination)], env=env, check=True)
 
 
-def install_system_packages(packages, system, apply):
+def install_system_packages(packages, system, apply, setup=False):
     if system == 'macos':
         brew = brew_path()
         if not Path(brew).is_file():
@@ -438,11 +470,12 @@ def install_system_packages(packages, system, apply):
             if name in extras:
                 command([brew, 'install', *extras[name]], apply)
         return
-    if not shutil.which('omarchy') or not shutil.which('pacman'):
+    if apply and (not shutil.which('omarchy') or not shutil.which('pacman')):
         raise ValueError('Linux package installation requires Omarchy and pacman')
     dependencies = sorted({'wl-clipboard', 'xdg-utils'} | {
-        dependency for package in packages for dependency in PACKAGES[package]})
-    unavailable = [name for name in dependencies if subprocess.run(
+        dependency for package in packages for dependency in PACKAGES[package]}
+        | (set(SETUP_DEPENDENCIES) if setup else set()))
+    unavailable = [name for name in dependencies if apply and subprocess.run(
         ['pacman', '-Si', name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode]
     if unavailable:
         raise ValueError('Packages absent from configured repositories: ' + ', '.join(unavailable))
@@ -453,6 +486,115 @@ def install_system_packages(packages, system, apply):
         if result.returncode or 'database file for' in result.stderr:
             raise ValueError('Package databases are incomplete. Run sudo pacman -Syu in your terminal first.')
     command(['omarchy', 'pkg', 'add', *dependencies], apply)
+
+
+def wechat_architecture():
+    machine = platform.machine()
+    if machine in ('aarch64', 'arm64'):
+        return 'arm64', 183
+    if machine == 'x86_64':
+        return 'x86_64', 62
+    raise ValueError('Omarchy setup supports aarch64 and x86_64')
+
+
+def check_wechat_appimage(path, expected_machine):
+    with path.open('rb') as handle:
+        header = handle.read(20)
+    if (len(header) != 20 or header[:5] != b'\x7fELF\x02' or header[5] not in (1, 2)
+            or int.from_bytes(header[18:20], 'little' if header[5] == 1 else 'big') != expected_machine):
+        raise ValueError(f'WeChat AppImage is invalid or for another architecture: {path}')
+
+
+def install_wechat(apply):
+    architecture, machine = wechat_architecture()
+    home = Path.home()
+    app = home / 'Applications/WeChat.AppImage'
+    launcher = home / '.local/share/applications/wechat-appimage.desktop'
+    for path in (app, launcher):
+        for parent in (path, *path.parents):
+            if parent == home:
+                break
+            if parent.is_symlink():
+                raise ValueError(f'WeChat installation refuses a symlink: {parent}')
+        if path.exists() and not path.is_file():
+            raise ValueError(f'WeChat destination is not a regular file: {path}')
+    url = f'https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_{architecture}.AppImage'
+    print(f'WeChat official AppImage: {url} -> {app}', flush=True)
+    if not apply:
+        print(f'Create application-menu entry: {launcher}')
+        return
+    if app.exists():
+        check_wechat_appimage(app, machine)
+        print('WeChat AppImage already installed; keeping it.')
+    else:
+        app.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='.dotfiles-wechat-', dir=app.parent) as directory:
+            download = Path(directory) / 'WeChat.AppImage'
+            command(['curl', '--fail', '--location', '--retry', '3', '--proto', '=https',
+                     '--proto-redir', '=https', url, '--output', str(download)], True)
+            check_wechat_appimage(download, machine)
+            download.chmod(0o755)
+            os.replace(download, app)
+    app.chmod(0o755)
+    # Desktop Exec uses its own quoting rules, followed by key-value escaping.
+    executable = str(app)
+    for character in ('\\', '"', '`', '$'):
+        executable = executable.replace(character, '\\' + character)
+    executable = executable.replace('\\', '\\\\').replace('%', '%%')
+    if '\n' in executable or '\r' in executable:
+        raise ValueError('A desktop entry cannot contain a newline in its executable path')
+    entry = ('[Desktop Entry]\nType=Application\nName=WeChat\nComment=WeChat for Linux\n'
+             f'Exec="{executable}" %U\nIcon=wechat\nTerminal=false\nCategories=Network;InstantMessaging;\n')
+    if not launcher.exists() or launcher.read_text() != entry:
+        launcher.parent.mkdir(parents=True, exist_ok=True)
+        if launcher.exists():
+            stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
+            backup = home / '.local/state/dotfiles/backups' / stamp / launcher.relative_to(home)
+            backup.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(launcher, backup)
+        with tempfile.TemporaryDirectory(prefix='.dotfiles-launcher-', dir=launcher.parent) as directory:
+            temporary = Path(directory) / launcher.name
+            temporary.write_text(entry)
+            temporary.chmod(0o644)
+            os.replace(temporary, launcher)
+    if shutil.which('update-desktop-database'):
+        command(['update-desktop-database', str(launcher.parent)], True)
+
+
+def install_omarchy_apps(apply):
+    if not apply or subprocess.run(['pacman', '-Q', 'chatgpt-bin'],
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+        print('ChatGPT: the official Arch installer verifies signing keys and packages, '
+              'adds the signed repository, and runs a full system upgrade with confirmation.', flush=True)
+        download_installer('https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh',
+                           ['sudo', '/bin/bash'], apply)
+    else:
+        print('ChatGPT is already installed; keeping the installed package.')
+    if not apply or (not shutil.which('zed') and not (Path.home() / '.local/bin/zed').is_file()):
+        download_installer('https://zed.dev/install.sh', '/bin/sh', apply)
+    else:
+        print('Zed is already installed; keeping the installation.')
+    install_wechat(apply)
+
+
+def validate_omarchy_setup(apply):
+    if apply:
+        missing = [name for name in ('zsh', 'git', 'nvim', 'tmux', 'yazi', 'mise',
+                                    'node', 'codex', 'gh', 'pi', 'zed', 'chatgpt', 'foot', 'satty')
+                   if not shutil.which(name)]
+        if missing:
+            raise ValueError('Setup is incomplete; executables missing from PATH: ' + ', '.join(missing))
+    for arguments in (['codex', '--version'], ['pi', '--version'], ['zed', '--version'],
+                      ['pacman', '-Qk', 'chatgpt-bin']):
+        command(arguments, apply)
+    command(['foot', '--check-config'], apply)
+    if apply and os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'):
+        command(['hyprctl', 'reload'], True)
+        result = subprocess.run(['hyprctl', 'configerrors'], text=True, capture_output=True, check=True)
+        if result.stdout.strip().lower() not in ('', 'ok', 'no errors'):
+            raise ValueError('Hyprland reports configuration errors: ' + result.stdout.strip())
+    elif apply:
+        print('Hyprland is not running; desktop settings load on your next login.')
 
 
 def install_haskell(apply):
@@ -472,6 +614,8 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--apply', action='store_true', help='perform the previewed operations')
     mode.add_argument('--dry-run', action='store_true', help='preview only, the default')
+    parser.add_argument('--setup', action='store_true',
+                        help='complete Omarchy setup: tools, runtimes, plugins, apps, Foot and shortcuts')
     parser.add_argument('--platform', choices=('auto', 'macos', 'omarchy'), default='auto',
                         help='auto-detect, or preview another platform')
     parser.add_argument('--packages', help='comma-separated configuration packages')
@@ -482,6 +626,8 @@ def main():
     parser.add_argument('--install-haskell', action='store_true', help='install GHCup, GHC, Cabal, and HLS')
     parser.add_argument('--github-login', action='store_true', help='start GitHub CLI web authentication')
     parser.add_argument('--set-default-shell', action='store_true', help='make Zsh the login shell using chsh')
+    parser.add_argument('--restore-ssh', type=Path, metavar='BACKUP_DIRECTORY',
+                        help='restore a local .ssh backup outside this repository; never start authentication')
     args = parser.parse_args()
     host = {'darwin': 'macos', 'linux': 'omarchy'}.get(sys.platform)
     if not host:
@@ -489,8 +635,19 @@ def main():
     system = host if args.platform == 'auto' else args.platform
     if args.apply and system != host:
         parser.error('A different platform can only be previewed')
+    if args.setup:
+        if system != 'omarchy':
+            parser.error('--setup is for Omarchy; use --platform omarchy to preview it from macOS')
+        if args.packages:
+            parser.error('--setup selects the complete environment; omit --packages')
+        if args.apply and os.geteuid() == 0:
+            parser.error('Run setup as your regular user; package installers request sudo themselves')
+        wechat_architecture()
+        args.install_packages = args.install_runtimes = args.install_plugins = True
     allowed = MAC_PACKAGES if system == 'macos' else set(PACKAGES)
     default = MAC_DEFAULT if system == 'macos' else LINUX_DEFAULT
+    if args.setup:
+        default = OMARCHY_SETUP
     packages = list(dict.fromkeys(name.strip() for name in (args.packages or ','.join(default)).split(',')))
     unknown = set(packages) - allowed
     if unknown:
@@ -502,22 +659,32 @@ def main():
                     args.install_haskell, args.github_login, args.set_default_shell))
     if args.apply and software and target != Path.home():
         parser.error('Software installation and shell changes require the current home directory')
+    if args.apply and args.setup and not (target / '.config/hypr/hyprland.lua').is_file():
+        parser.error('Complete setup requires Omarchy 4 with ~/.config/hypr/hyprland.lua')
     runtime_package = 'mise'
     if args.install_runtimes and runtime_package not in packages:
         parser.error('--install-runtimes requires the ' + runtime_package + ' package')
     print(f'Platform: {system}. Mode: {"apply" if args.apply else "preview"}.', flush=True)
     print('Configuration packages: ' + ', '.join(packages), flush=True)
-    files = files_for(packages, system)
+    files = files_for(packages, system, setup=True) if args.setup else files_for(packages, system)
     deploy(files, target, False)
+    if args.restore_ssh:
+        restore_ssh(args.restore_ssh, target, False)
     specs = plugin_specs(packages) if args.install_plugins else []
     if args.install_plugins:
         install_plugins(specs, target, False)
         install_editor_plugins(packages, False)
         install_pi_plugins(packages, False)
     if args.install_packages:
-        install_system_packages(packages, system, args.apply)
+        install_system_packages(packages, system, args.apply, setup=args.setup)
+    if args.setup:
+        install_omarchy_apps(args.apply)
     if args.apply:
         deploy(files, target, True)
+        if args.restore_ssh:
+            restore_ssh(args.restore_ssh, target, True)
+        if args.setup:
+            os.environ['PATH'] = str(target / '.local/bin') + os.pathsep + os.environ.get('PATH', '')
     if args.install_runtimes:
         if args.apply and not shutil.which('mise'):
             raise ValueError('Install mise for your architecture before requesting runtimes')
@@ -537,6 +704,8 @@ def main():
         install_pi_plugins(packages, True)
     if args.install_haskell:
         install_haskell(args.apply)
+    if args.setup:
+        validate_omarchy_setup(args.apply)
     if args.github_login:
         command(['gh', 'auth', 'login', '--hostname', 'github.com', '--web'], args.apply)
     if args.set_default_shell:
@@ -547,6 +716,9 @@ def main():
             command(['chsh', '-s', shell], args.apply)
         else:
             print('Zsh is already the default login shell.')
+    if args.setup and args.apply:
+        print('Setup complete. Open a new terminal. Sign in later with codex login, '
+              'Pi /login, gh auth login, and the ChatGPT and WeChat applications.')
     return 0
 
 

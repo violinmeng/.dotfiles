@@ -1,248 +1,178 @@
-# Set up the shell and editors on Omarchy
+# Restore your environment on Omarchy
 
-This port targets Omarchy on Arch Linux, including ARM64. It leaves your desktop,
-terminal settings, and login shell unchanged. It does not deploy AeroSpace or
-Apple Terminal themes. SASE and ActionBridge are only referenced inside macOS
-shell guards.
+Use this guide after installing Omarchy 4 and completing its first desktop login.
+The complete setup supports aarch64 and x86_64. It installs software and applies
+configuration; you sign in to your accounts afterward.
 
-## Preview the configuration
+## Download the project and run setup
 
-From the repository, run:
+Download the project ZIP from GitHub and extract it, or clone the repository.
+Put the project in a permanent directory such as `~/.dotfiles` before running
+setup. Keep that directory: managed configuration links point into it.
+Python 3.11 or newer is required; Git metadata is not required for ZIP downloads.
 
-```sh
-./install.py --dry-run
-```
-
-The default selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`. Most files get a
-symlink into `shared/<app>/` or `linux/<app>/` in this repository. Skill manifests
-(`SKILL.md`) are copied as regular files so Codex and T3 Code can discover them.
-Shared home directories remain real directories, so unrelated files stay in place. The
-`mise` package uses `linux/mise/config.toml`; macOS uses its own declaration.
-
-## Install dependencies and apply the configuration
+Preview the complete setup:
 
 ```sh
-./install.py --apply --install-packages
+cd ~/.dotfiles
+python3 install.py --setup
 ```
 
-The package step checks the configured repositories before calling
-`omarchy pkg add`. Run this in a terminal where you can enter your sudo password.
-It does not refresh package databases or perform a system upgrade. If a package
-is unavailable, the installer stops before deploying configuration.
-
-Existing files move to `~/.local/state/dotfiles/backups/<timestamp>/` with their
-relative paths preserved. To restore a file, remove its new symlink and move its
-backup to the original path. Repeating the installer leaves correct links alone.
-An error during link creation restores the files changed in that invocation.
-The installer expands directory links owned by this repository. It refuses
-unrelated directory symlinks to avoid modifying another checkout.
-
-Start `zsh` to use the shell configuration. The installer runs `chsh` only with `--set-default-shell`.
-Without Oh My Zsh, Zsh uses completion and a basic prompt. Existing Oh My Zsh,
-TPM, and `z` installations are reused. Plugin downloads require `--install-plugins`.
-The custom `wangalin` theme and Zsh plugins require Oh My Zsh and its plugins;
-tmux's Catppuccin theme requires TPM and the plugin checkout. Missing themes do
-not prevent shell or tmux startup.
-
-## Start new terminals in Zsh
-
-Select Zsh as the account login shell explicitly:
+Apply it from a terminal where you can enter your sudo password:
 
 ```sh
-./install.py --apply --packages zsh --set-default-shell
+python3 install.py --setup --apply --set-default-shell
 ```
 
-Log out and back in to refresh the desktop session's environment. Until then,
-Foot can inherit an old `SHELL=/bin/bash` even when the account's login shell is
-already Zsh. In `~/.config/foot/foot.ini`, set this in the existing `[main]`
-section to make new Foot windows start Zsh immediately:
+The installer completes these steps:
 
-```ini
-[main]
-shell=/usr/bin/zsh
-```
+- Install Zsh, Git and Git LFS, fzf helpers, tmux, Neovim, Yazi and its dependencies,
+  mise, and the screenshot and AppImage dependencies.
+- Install ChatGPT through the [official Arch installer](https://learn.chatgpt.com/docs/linux/linux-app),
+  Zed through its [official Linux installer](https://zed.dev/docs/linux), and
+  [WeChat's native Linux AppImage](https://linux.weixin.qq.com/) for your architecture.
+- Deploy shared agent skills, Zsh, Git, fzf, tmux, Kvim, Yazi, Pi, Zed, and the Linux mise configuration.
+- Install the runtimes declared in `linux/mise/config.toml`, including Codex CLI,
+  GitHub CLI, Node, Bun, Java, Ruby, Rust, and the editor tools.
+- Install Pi at its pinned version, its configured extensions, and the Zsh,
+  tmux, and Neovim plugins. Runtime installation precedes plugin builds.
+- Restore the saved Foot configuration and Hyprland Command-key shortcuts.
+  Check Foot configuration, then reload and check Hyprland when a desktop session is active.
+- Change the login shell only when you include `--set-default-shell`.
 
-The working Foot configuration is saved in `linux/foot/foot.ini` for optional
-manual restoration; it is deliberately excluded from `install.py`. Back up your
-live file before copying it, or merge only the `shell` line if you have other
-terminal preferences. Validate with `foot --check-config`, then open a **new**
-terminal. Existing terminals are not restarted. Inside it, `echo $ZSH_VERSION`
-should print a version. The shared `.zshenv` also exports Zsh's executable as
-`SHELL` for child tools and terminals, correcting stale inherited values.
+Before reporting success, setup checks that the selected commands are on PATH,
+runs the Codex, Pi, and Zed version commands, and checks ChatGPT's package files.
 
-## Install the configured shell and tmux plugins
+**First-time ChatGPT installation runs a full Arch system upgrade.** The official
+installer verifies the published signing key, package, and repository signatures
+before configuring the signed OpenAI repository. It keeps pacman's confirmation
+prompt. Review that prompt in your terminal. Already-installed ChatGPT and Zed
+are kept; an existing WeChat AppImage is kept after its architecture is checked.
+
+Normal configuration deployment still excludes desktop settings. `--setup`
+explicitly selects the complete environment and cannot be combined with
+`--packages`. SASE, ActionBridge, and macOS application paths stay off Linux.
+
+If a download or plugin build fails, fix the reported problem and run the same
+setup command again. Correct configuration links and installed apps are reused.
+Existing plugin checkouts are preserved; a different upstream or pin stops the
+installer instead of resetting local work. Missing or incomplete system package
+databases stop installation with instructions to update in your own terminal.
+
+## Restore SSH keys from an external backup
+
+Keep your `.ssh` backup outside this repository. Copy that backup directory into
+the new VM using your existing transfer method. A backup from the old Omarchy
+home and an export from your Mac use the same restore command.
+
+To restore keys along with the complete setup:
 
 ```sh
-./install.py --apply --packages zsh,tmux --install-plugins
+python3 install.py --setup --apply --set-default-shell \
+  --restore-ssh /path/to/ssh-backup
 ```
 
-Add `--install-packages` if Zsh or tmux is missing. Omit `--apply` to preview.
-The installer reads the active Zsh and tmux plugin declarations. It installs
-Oh My Zsh, autosuggestions, syntax highlighting, the `z` directory helper, TPM,
-and Catppuccin at the version pinned in `.tmux.conf`. Commented plugin examples
-are excluded. Existing checkouts are reused without updates or resets; a
-conflicting upstream or version stops installation. Failed clones are removed.
-The custom `wangalin` theme is deployed with the Zsh configuration.
+Pass the directory containing `id_ed25519`, its public key, `config`, or your
+other SSH files, rather than the parent home directory. The backup must contain
+regular files and real directories. Export any symlinked keys as regular files
+first. Agent and connection sockets are skipped.
 
-To reload an existing tmux session after installation, run:
+To restore only SSH files, preview and apply the standalone utility:
 
 ```sh
-tmux source-file ~/.tmux.conf
+python3 scripts/restore_ssh.py /path/to/ssh-backup
+python3 scripts/restore_ssh.py /path/to/ssh-backup --apply
 ```
 
-New tmux servers load it automatically. The tmux prefix is `Ctrl+a`.
+The utility copies file contents, preserves unrelated destination keys, and
+backs up conflicting files under
+`~/.local/state/dotfiles/backups/<timestamp>/ssh/`. SSH directories use mode
+`0700`, private keys and configuration use `0600`, and public keys and
+`known_hosts` use `0644`. Identical files are kept on repeat runs. A copy failure
+restores the files changed by that invocation. Key contents are never printed.
 
-## Install Neovim plugins
+Encrypted keys keep their passphrases. SSH configuration is copied as written;
+review any Mac-only `IdentityAgent`, `IdentityFile`, or `Include` paths after
+restoring a Mac backup. The utility does not start an agent, run `ssh-add`,
+connect to a server, or start an account login. It refuses backups and restored
+keys inside this repository.
+
+## Sign in after setup
+
+Open a new terminal, then complete the accounts you use:
+
+- Run `codex login` for Codex CLI.
+- Start `pi` and use `/login` for its provider account.
+- Run `gh auth login` for GitHub CLI.
+- Open ChatGPT from the application menu and sign in.
+- Open WeChat from the application menu and scan its login QR code.
+- Open Zed and sign in if you use its account features.
+
+Account tokens, SSH keys, WeChat chats, Pi sessions, private MCP configuration,
+and local authorization files are not supplied by Git or the project ZIP.
+Existing private files remain in place. Restore personal data from your own
+backup separately.
+
+## Restore selected configuration instead
+
+The default installer remains a configuration-only preview:
 
 ```sh
-./install.py --apply --packages kvim --install-plugins
+python3 install.py
 ```
 
-Add `--install-packages` when Neovim or the C build tools are missing. The
-installer starts the selected profile headlessly. Neovim's native `vim.pack`
-manager installs the active plugins from `lua/core/packages.lua` using the
-profile's lockfile. The configuration builds Telescope's native FZF extension.
-A verification step checks startup errors, plugin directories, the compiled
-library, and loading the FZF extension; failures stop the installer.
-
-Kvim is the only Neovim profile and is included in the default selection.
-`shared/kvim` deploys to `~/.config/nvim`; both `nvim` and the compatibility
-alias `knvim` use it without `NVIM_APPNAME`. It requires Neovim 0.12+ and the
-supported `main` Treesitter and text-object APIs. `--install-packages` installs
-Tree-sitter CLI 0.26.1+ through Omarchy; parser generation also needs Node.
-If an older npm CLI shadows the distro binary, remove it with
-`npm uninstall --global --prefix ~/.local tree-sitter-cli`.
-During installer runs, parser builds are synchronous and verified before success.
-The installer also checks `mini.hipatterns` Hex highlighting. It does not invoke
-`PackUpdate` or install language runtimes. You can include `zsh,tmux,kvim` in a
-single selection to reproduce shell, multiplexer, and editor plugins.
-For existing two-profile installations, follow the backup/migration notes in
-[the Neovim section](../README.md#neovim) before deploying.
-
-## Select additional editors
+Its default Linux selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`.
+For a smaller installation, select packages and installation steps explicitly:
 
 ```sh
-./install.py --dry-run --packages zsh,git,fzf,tmux,kvim,emacs,yazi,mise,zed
+python3 install.py --apply --packages zsh,tmux,kvim,mise \
+  --install-packages --install-runtimes --install-plugins
 ```
 
-Add `--apply` to deploy that selection. Optional `vim`, `pi`, and `herdr` packages
-are also supported. Configuration-only deployment does not install Zed, Pi, or Herdr. For Pi, add
-`--install-packages --install-plugins` to install the CLI and its configured packages.
-The Pi package contains personal provider, model, and MCP settings; select it
-only when you intend to use those settings. No credentials are created or copied
-from local private files.
+Existing configuration files move to
+`~/.local/state/dotfiles/backups/<timestamp>/` before replacement. Skill
+`SKILL.md` manifests are regular copies for Codex discovery; other managed files
+are links. The installer expands directory links owned by this repository and
+refuses unrelated parent-directory symlinks. A failure during file deployment
+rolls back that invocation's file changes.
 
-Zed and Ghostty support Linux. Their package names were absent from this
-machine's configured ARM64 indexes during the port. Zed publishes an official
-[aarch64 build](https://zed.dev/docs/linux); Ghostty documents its
-[Linux installation options](https://ghostty.org/docs/linux). Ghostty's configuration
-is unchanged and excluded from the Linux installer. Launch Zed from a configured
-shell so its agent processes inherit the runtime PATH. Agent configuration no
-longer hard-codes the Mac home directory.
+Kvim requires Neovim 0.12+, Tree-sitter CLI 0.26.1+, Node, and the C build tools.
+The installer checks its headless startup and native FZF extension. Do not set
+`NVIM_APPNAME`; both `nvim` and `knvim` use `~/.config/nvim`.
 
-## Install language runtimes separately
+## Use the restored terminal and shortcuts
 
-Install mise for your architecture first. Then run:
-
-```sh
-./install.py --apply --packages mise --install-runtimes
-```
-
-The Linux declaration retains the Mac versions for Bun, Java, Lua language
-server, Node, Pyright, Ruby, Rust, Stylua, and Zig. It omits Tuist and SwiftFormat
-from the default installation. This is a conservative Linux toolchain selection,
-not a claim that those tools cannot run on Linux. Tuist now
-[supports Linux](https://tuist.dev/en/docs/guides/install-tuist), but Xcode builds
-and the Xcode Neovim plugin require a Mac. Kvim loads the Xcode plugin only on
-macOS, and enables SourceKit and SwiftFormat only when their executables exist.
-Runtime downloads and Ruby/Java builds have not been validated on this machine.
-The installer leaves GHCup, gh, chsrc, mobile SDKs, and agent CLIs for explicit
-installation. Android defaults to `~/Android/Sdk`; override `ANDROID_HOME` for a
-different location.
-
-## Optional WeChat desktop app
-
-WeChat is installed separately from the dotfiles. Use the native Linux build
-from [WeChat's official download page](https://linux.weixin.qq.com/), not a
-Wine wrapper. On this ARM64 machine (`uname -m` reports `aarch64`), select
-**ARM → AppImage**; the x86_64 build is for Intel/AMD machines.
-
-For a fresh ARM64 installation, run these commands in a terminal:
-
-```sh
-omarchy pkg add fuse2
-mkdir -p ~/Applications
-curl -fL --retry 3 \
-  https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_arm64.AppImage \
-  -o ~/Applications/WeChat.AppImage.download &&
-  chmod +x ~/Applications/WeChat.AppImage.download &&
-  mv -i ~/Applications/WeChat.AppImage.download ~/Applications/WeChat.AppImage &&
-  ~/Applications/WeChat.AppImage
-```
-
-Scan the login QR code using WeChat on your phone. The download URL serves the
-current upstream release rather than a pinned version. To update, quit WeChat
-first, back up the existing AppImage, and repeat the download steps.
-
-The local installation also has an app-launcher entry at
-`~/.local/share/applications/wechat-appimage.desktop`, pointing to
-`~/Applications/WeChat.AppImage`, with its extracted icon at
-`~/.local/share/icons/wechat-appimage.png`. These are generated per user and are
-not deployed by `install.py`. On another machine, create a launcher entry using
-that machine's absolute home path; `.desktop` `Exec` and `Icon` fields do not
-expand `~` or `$HOME`.
-
-Keep the AppImage, extracted icons, login/session data (`~/.xwechat/`), and chat
-files (`~/Documents/xwechat_files/`) outside this repository. Do not copy them
-into `linux/` or another user's home.
-
-## Screenshot and Command-key shortcuts
-
-`linux/hypr/` preserves the working desktop shortcuts. These files are
-excluded from `install.py`, including explicit package selection. Restore them
-separately if you want this desktop customization. The saved `bindings.lua`
-replaces your personal binding overrides, so merge it instead if you have others.
+The complete profile restores `linux/foot/foot.ini`, `linux/hypr/bindings.lua`,
+and `linux/hypr/command-paste.py`. Existing personal overrides are backed up;
+other files in `~/.config/hypr` stay in place. Foot starts `/usr/bin/zsh` without
+waiting for the current desktop session's inherited `SHELL` to change.
 
 | Shortcut | Action |
 | --- | --- |
-| Command/Super + Shift + A | Select a screenshot region and open Satty; replaces the ChatGPT web app binding |
-| Command/Super + C | Copy using Omarchy's existing universal copy binding |
+| Command/Super + Shift + A | Select a screenshot region and annotate it in Satty |
+| Command/Super + C | Use Omarchy's universal copy binding |
 | Command/Super + S | Save in Satty; toggle the scratchpad elsewhere |
-| Command/Super + V | Paste text or images; terminals receive Shift+Insert for text and Ctrl+V for images |
+| Command/Super + V | Paste text or images using the clipboard helper |
 
-The paste helper checks clipboard MIME types in a separate process so it does
-not block Hyprland's Wayland event loop. Pi's tracked `keybindings.json` accepts
-both Ctrl+V and Alt+V for image paste. Restart Pi after changing that file.
+Pi also accepts Ctrl+V and Alt+V for image paste. Start a new Pi session after
+restoring its keybindings. Existing terminals and applications are not restarted.
 
-To restore the saved desktop files, run these commands from the repository in
-an Omarchy desktop session:
+## Validate installer changes
 
 ```sh
-omarchy pkg add satty grim slurp wl-clipboard imagemagick
-cp -a ~/.config/hypr ~/.config/hypr.backup-$(date +%Y%m%dT%H%M%S)
-cp linux/hypr/bindings.lua ~/.config/hypr/bindings.lua
-cp linux/hypr/command-paste.py ~/.config/hypr/command-paste.py
-hyprctl reload
-hyprctl configerrors
-```
-
-The screenshot binding uses Omarchy's `capture screenshot region save` command.
-It saves images under your configured Pictures directory and opens Satty with
-that file as both input and save destination.
-
-## Check the port
-
-```sh
+python3 scripts/update-install-manifest.py --check
 python3 scripts/check-install.py
+python3 scripts/check-omarchy-setup.py
+git diff --check
 ```
 
-This exercises preview, real links, backups, repeat application, package
-selection errors, and directory-symlink refusal in disposable targets. It also
-parses TOML and checks Python and Lua syntax. If Zsh is installed, it
-checks shell syntax and starts an isolated interactive shell. It does not load
-editor plugins or download runtimes. Clipboard operations require a running
-Wayland session and `wl-clipboard`; tmux falls back to OSC 52 outside that session.
+After adding, moving, or removing managed source files in a Git checkout, run
+`python3 scripts/update-install-manifest.py` and include the updated
+`install-manifest.json` in the change. ZIP deployment uses that allowlist;
+files added locally after extraction are excluded.
 
-FZF's Chrome history and bookmark helpers remain Chrome-specific. They now use
-Linux paths and report a missing profile instead of assuming one exists. They
-do not install or select a browser.
+The checks use disposable homes, real ZIP extraction and file deployment, and
+mocked software installers. They cover repeat runs, interrupted downloads,
+SSH permissions, conflict backups, sockets, symlinks, and recovery after a copy
+failure. They do not install the full toolchain or prove graphical application
+startup in a fresh VM. Clipboard shortcuts require a running Wayland session.

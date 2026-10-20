@@ -48,3 +48,7 @@ shared/emacs/url/
 
 shared/zsh/zshrc.local.sh
 *.local
+
+# Keep SSH exports outside the project, including ignored local copies.
+.ssh/
+ssh-backup*/

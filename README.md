@@ -6,7 +6,7 @@ backups, dependencies, and plugin installation on both platforms.
 
 ```text
 shared/          Cross-platform shell, editors, and agents
-linux/           Linux runtime declaration and optional Hyprland shortcuts
+linux/           Linux runtimes, Foot, and Hyprland shortcuts
 macos/           Homebrew, runtimes, terminals, and AeroSpace
 scripts/         Validation and migration tools
 docs/            Setup guides
@@ -19,7 +19,9 @@ Source paths do not mirror your home directory. For example,
 
 ## Requirements
 
-Install Python 3.11 or newer and Git before running the installer. A fresh Mac
+Install Python 3.11 or newer. Git is required for checkout-based source selection
+and plugin downloads; project ZIPs use the shipped `install-manifest.json`.
+The complete Omarchy profile installs Git with its system dependencies. A fresh Mac
 also needs the Xcode Command Line Tools for Git and native plugin builds:
 
 ```sh
@@ -51,12 +53,23 @@ The default Linux selection is `agents,zsh,git,fzf,tmux,kvim,yazi,mise`.
 It leaves the Omarchy desktop and terminal settings unchanged. See the
 [Omarchy setup guide](docs/omarchy.md).
 
-The optional [Omarchy shortcut configuration](docs/omarchy.md#screenshot-and-command-key-shortcuts)
-is saved under `linux/hypr/`. It is excluded from the installer.
-The optional [Foot/Zsh startup configuration](docs/omarchy.md#start-new-terminals-in-zsh)
-is saved under `linux/foot/` and is also restored manually.
-[WeChat for Linux](docs/omarchy.md#optional-wechat-desktop-app) is installed
-separately; the guide records the official ARM64 AppImage setup.
+For a fresh Omarchy 4 environment, download or clone the project into a permanent
+directory such as `~/.dotfiles`, then run the complete setup:
+
+```sh
+python3 install.py --setup --apply --set-default-shell
+```
+
+Omit `--apply` to preview. This profile installs the development tools, runtimes,
+plugins, Pi, Codex CLI, ChatGPT, Zed, and WeChat, and restores Foot and Hyprland
+shortcuts. First-time ChatGPT installation uses the official signed Arch installer,
+which performs a full system upgrade with confirmation. Accounts are left for
+you to sign in afterward. Keep the project directory because configuration links
+point into it. See the [complete Omarchy guide](docs/omarchy.md).
+
+To restore SSH keys from a backup outside the project, add
+`--restore-ssh /path/to/ssh-backup`. For SSH recovery alone, use
+`python3 scripts/restore_ssh.py /path/to/ssh-backup --apply`.
 
 The default Mac selection is
 `agents,zsh,alacritty,git,fzf,tmux,kvim,mise,herdr,pi,zed`.
@@ -97,12 +110,14 @@ Expansion keeps unrelated contents reachable through links to their old source.
 
 | Option | Operation |
 | --- | --- |
+| `--setup` | Complete Omarchy 4 software, runtime, plugin, and desktop setup |
 | `--install-packages` | Homebrew Bundle or Omarchy system dependencies |
 | `--install-plugins` | Configured Zsh, tmux, selected Neovim, and Pi plugins |
 | `--install-runtimes` | Trust and install the selected mise declaration |
 | `--install-haskell` | GHCup, GHC, Cabal, and HLS |
 | `--github-login` | Start the GitHub CLI web login flow |
 | `--set-default-shell` | Use `chsh` to make Zsh the login shell |
+| `--restore-ssh PATH` | Restore an external SSH backup with conflict backups and private permissions |
 
 Every option still requires `--apply` to make changes. Plugin installation
 requires Git. Kvim requires Neovim 0.12+, Tree-sitter CLI 0.26.1+, and Node for parser
@@ -116,8 +131,8 @@ Install runtimes before Kvim plugins on a fresh machine:
 ./install.py --apply --packages zsh,tmux,kvim --install-packages --install-plugins
 ```
 
-On Mac, `--install-packages` provisions mise through Homebrew. On Omarchy, install
-mise for the machine's architecture first. The `mise` package selects
+`--install-packages` provisions mise through Homebrew on Mac and Omarchy's
+repositories on Linux. The `mise` package selects
 `linux/mise/config.toml` or `macos/mise/config.toml` for the current platform.
 
 Configuration-only deployment does not install application executables.
@@ -235,7 +250,8 @@ Restart Pi after migration; subsequent native config edits can use `/reload`.
 No `NVIM_APPNAME` override is needed. `macos/terminal-themes`
 contains manually imported Mac Terminal themes and is not deployed by the installer.
 
-The installer selects only versioned or nonignored source files using Git.
+In a checkout, the installer selects versioned or nonignored source files using
+Git. A project ZIP selects only paths in the shipped `install-manifest.json`.
 Ignored credentials, plugin checkouts, and generated runtime state are excluded.
 Keep private machine settings in local override files.
 
@@ -243,6 +259,8 @@ Keep private machine settings in local override files.
 
 ```sh
 python3 scripts/check-install.py
+python3 scripts/check-omarchy-setup.py
+python3 scripts/update-install-manifest.py --check
 ```
 
 This runs disposable deployments, backup and rollback checks, repeat runs,

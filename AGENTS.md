@@ -7,8 +7,9 @@ This repository supports macOS and Omarchy through one Python 3.11+ installer,
 ## Installer rules
 
 - Preview is the default. Mutations require `--apply`.
-- Keep macOS and Omarchy system dependencies separate. Linux deployment excludes
-  desktop and terminal settings, SASE, and ActionBridge.
+- Keep macOS and Omarchy system dependencies separate. Default Linux deployment
+  excludes desktop and terminal settings. The explicit `--setup` profile includes
+  Omarchy 4 Foot and Hyprland settings. SASE and ActionBridge remain macOS-only.
 - Preserve existing files with backups. Expand only directory links owned by
   this repository, with rollback; refuse unrelated directory symlinks.
 - Deploy only versioned or nonignored sources. Never copy ignored runtime data,
@@ -16,10 +17,16 @@ This repository supports macOS and Omarchy through one Python 3.11+ installer,
 - Preserve plugin pins and existing local plugin work.
 - Login-shell changes and GitHub authentication require their explicit flags.
 - Keep one public installer. Update callers and docs when changing its interface.
+- Ship `install-manifest.json` for ZIP downloads. After changing managed sources,
+  run `python3 scripts/update-install-manifest.py`; archive deployment uses only
+  this allowlist, never a recursive copy of local state.
+- SSH restoration reads an explicit backup outside the repository. Copy regular
+  files with private permissions, preserve conflicts, and keep credentials out of Git.
 
 ## Validation
 
-Run `python3 scripts/check-install.py` and `git diff --check`.
+Run `python3 scripts/check-install.py`, `python3 scripts/check-omarchy-setup.py`,
+`python3 scripts/update-install-manifest.py --check`, and `git diff --check`.
 The tests use disposable targets and mocked package-manager calls. Previewing
 macOS on Linux does not validate real Homebrew installs or Mac application
 startup. Exercise the real selected Neovim profile when changing its setup.
